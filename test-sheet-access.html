@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Sheets Test</title>
+</head>
+<body>
+    <h1>Testing Google Sheets Access</h1>
+    <div id="result"></div>
+    
+    <script>
+        const SHEET_ID = '14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU';
+        
+        async function testSheetAccess() {
+            const resultDiv = document.getElementById('result');
+            
+            // Test 1: Google Visualization API
+            try {
+                resultDiv.innerHTML += '<h3>Testing Google Visualization API...</h3>';
+                const url1 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+                console.log('Testing URL 1:', url1);
+                
+                const response1 = await fetch(url1);
+                console.log('Response 1 status:', response1.status);
+                console.log('Response 1 headers:', response1.headers);
+                
+                if (response1.ok) {
+                    const text1 = await response1.text();
+                    resultDiv.innerHTML += `<p>✅ Success! Data length: ${text1.length}</p>`;
+                    resultDiv.innerHTML += `<pre>${text1.substring(0, 500)}...</pre>`;
+                } else {
+                    resultDiv.innerHTML += `<p>❌ Failed with status: ${response1.status}</p>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML += `<p>❌ Error: ${e.message}</p>`;
+            }
+            
+            // Test 2: Direct CSV Export
+            try {
+                resultDiv.innerHTML += '<h3>Testing Direct CSV Export...</h3>';
+                const url2 = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+                console.log('Testing URL 2:', url2);
+                
+                const response2 = await fetch(url2);
+                console.log('Response 2 status:', response2.status);
+                console.log('Response 2 headers:', response2.headers);
+                
+                if (response2.ok) {
+                    const text2 = await response2.text();
+                    resultDiv.innerHTML += `<p>✅ Success! Data length: ${text2.length}</p>`;
+                    resultDiv.innerHTML += `<pre>${text2.substring(0, 500)}...</pre>`;
+                } else {
+                    resultDiv.innerHTML += `<p>❌ Failed with status: ${response2.status}</p>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML += `<p>❌ Error: ${e.message}</p>`;
+            }
+            
+            // Test 3: Check if sheet is public
+            resultDiv.innerHTML += '<h3>Sheet Sharing Status:</h3>';
+            resultDiv.innerHTML += `<p>Sheet ID: ${SHEET_ID}</p>`;
+            resultDiv.innerHTML += `<p>Direct Link: <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit" target="_blank">Open Sheet</a></p>`;
+            resultDiv.innerHTML += `<p>Make sure the sheet is set to "Anyone with the link can view"</p>`;
+        }
+        
+        testSheetAccess();
+    </script>
+</body>
+</html>
