@@ -713,6 +713,8 @@
                                 justify-content: center !important;
                                 align-items: center !important;
                                 text-align: center !important;
+                                flex: 1 !important;
+                                min-width: 0 !important;
                             }
                             
                             .prayer-item div:first-child {
@@ -720,14 +722,20 @@
                                 margin-bottom: 5px !important;
                                 text-align: center !important;
                                 width: 100% !important;
-                                display: block !important;
+                                display: flex !important;
+                                justify-content: center !important;
+                                align-items: center !important;
+                                white-space: nowrap !important;
                             }
                             
                             .prayer-item div:last-child {
                                 font-size: 15px !important;
                                 text-align: center !important;
                                 width: 100% !important;
-                                display: block !important;
+                                display: flex !important;
+                                justify-content: center !important;
+                                align-items: center !important;
+                                white-space: nowrap !important;
                             }
                             
                             /* Mobile (360px, 390px) */
@@ -757,16 +765,26 @@
                                     max-width: 100% !important;
                                     display: flex !important;
                                     flex-direction: column !important;
+                                    flex: 1 !important;
+                                    min-width: 0 !important;
                                 }
                                 
                                 .prayer-item div:first-child {
                                     font-size: 12px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                                 
                                 .prayer-item div:last-child {
                                     font-size: 16px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                             }
                             
@@ -796,23 +814,33 @@
                                     max-width: 100% !important;
                                     display: flex !important;
                                     flex-direction: column !important;
+                                    flex: 1 !important;
+                                    min-width: 0 !important;
                                 }
                                 
                                 .prayer-item div:first-child {
                                     font-size: 13px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                                 
                                 .prayer-item div:last-child {
                                     font-size: 17px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                             }
                             
                             /* Tablets (768px, 810px) */
                             @media (min-width: 768px) {
                                 .prayer-grid {
-                                    grid-template-columns: repeat(3, 1fr) !important;
+                                    grid-template-columns: repeat(2, 1fr) !important;
                                     gap: 16px !important;
                                     padding: 0 12px !important;
                                     justify-items: center !important;
@@ -836,16 +864,26 @@
                                     max-width: 100% !important;
                                     display: flex !important;
                                     flex-direction: column !important;
+                                    flex: 1 !important;
+                                    min-width: 0 !important;
                                 }
                                 
                                 .prayer-item div:first-child {
                                     font-size: 14px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                                 
                                 .prayer-item div:last-child {
                                     font-size: 18px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                             }
                             
@@ -862,7 +900,7 @@
                                     margin-right: auto !important;
                                     justify-content: center !important;
                                     display: grid !important;
-                                    grid-template-columns: repeat(3, 1fr) !important;
+                                    grid-template-columns: repeat(2, 1fr) !important;
                                 }
                                 
                                 .prayer-item {
@@ -875,16 +913,26 @@
                                     max-width: 100% !important;
                                     display: flex !important;
                                     flex-direction: column !important;
+                                    flex: 1 !important;
+                                    min-width: 0 !important;
                                 }
                                 
                                 .prayer-item div:first-child {
                                     font-size: 15px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                                 
                                 .prayer-item div:last-child {
                                     font-size: 19px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                             }
                             
@@ -902,7 +950,7 @@
                                     margin-right: auto !important;
                                     justify-content: center !important;
                                     display: grid !important;
-                                    grid-template-columns: repeat(3, 1fr) !important;
+                                    grid-template-columns: repeat(2, 1fr) !important;
                                 }
                                 
                                 .prayer-item {
@@ -915,16 +963,26 @@
                                     max-width: 100% !important;
                                     display: flex !important;
                                     flex-direction: column !important;
+                                    flex: 1 !important;
+                                    min-width: 0 !important;
                                 }
                                 
                                 .prayer-item div:first-child {
                                     font-size: 16px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                                 
                                 .prayer-item div:last-child {
                                     font-size: 20px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                             }
                             
@@ -941,7 +999,7 @@
                                     margin-right: auto !important;
                                     justify-content: center !important;
                                     display: grid !important;
-                                    grid-template-columns: repeat(3, 1fr) !important;
+                                    grid-template-columns: repeat(2, 1fr) !important;
                                 }
                                 
                                 .prayer-item {
@@ -954,16 +1012,26 @@
                                     max-width: 100% !important;
                                     display: flex !important;
                                     flex-direction: column !important;
+                                    flex: 1 !important;
+                                    min-width: 0 !important;
                                 }
                                 
                                 .prayer-item div:first-child {
                                     font-size: 18px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                                 
                                 .prayer-item div:last-child {
                                     font-size: 22px !important;
                                     text-align: center !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    white-space: nowrap !important;
                                 }
                             }
                             
