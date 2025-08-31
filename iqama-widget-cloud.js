@@ -19,7 +19,11 @@
         // Styling Configuration
         backgroundColor: '#1F2937',
         accentColor: '#E5E7EB',
-        borderRadius: '20px'
+        borderRadius: '20px',
+        
+        // Widget Configuration
+        timeType: 'athan',
+        jumuahCount: 1
     };
     
     // Extract Sheet ID from Google Sheet URL
@@ -105,7 +109,38 @@
             const lines = csvText.split('\n');
             
             prayerTimesData = [];
-            for (let i = 1; i < lines.length; i++) {
+            let jumuahTimes = {
+                jumuah1: '',
+                jumuah2: '',
+                jumuah3: ''
+            };
+            
+            // First, extract Jumuah times from the first few rows
+            for (let i = 1; i <= 3; i++) {
+                if (lines[i] && lines[i].trim()) {
+                    const values = lines[i].split(',').map(value => {
+                        return value.replace(/^"/, '').replace(/"$/, '').trim();
+                    });
+                    
+                    if (values.length >= 9) {
+                        const jumuahLabel = values[7]; // Column 8 (0-indexed)
+                        const jumuahTime = values[8];   // Column 9 (0-indexed)
+                        
+                        if (jumuahLabel === '1st Jumuah') {
+                            jumuahTimes.jumuah1 = jumuahTime;
+                        } else if (jumuahLabel === '2nd Jumuah') {
+                            jumuahTimes.jumuah2 = jumuahTime;
+                        } else if (jumuahLabel === '3rd Jumuah') {
+                            jumuahTimes.jumuah3 = jumuahTime;
+                        }
+                    }
+                }
+            }
+            
+            console.log('🕌 Jumuah times extracted:', jumuahTimes);
+            
+            // Then parse daily prayer times (skip the first 3 rows which contain Jumuah data)
+            for (let i = 4; i < lines.length; i++) {
                 if (lines[i].trim()) {
                     // Handle quoted CSV values properly
                     const values = lines[i].split(',').map(value => {
@@ -113,7 +148,7 @@
                         return value.replace(/^"/, '').replace(/"$/, '').trim();
                     });
                     
-                    if (values.length >= 8) {
+                    if (values.length >= 7) {
                         prayerTimesData.push({
                             month: parseInt(values[0]),
                             day: parseInt(values[1]),
@@ -122,7 +157,7 @@
                             asr: values[4],
                             maghrib: values[5],
                             isha: values[6],
-                            jumuah: values[7]
+                            ...jumuahTimes // Add Jumuah times to each day
                         });
                     }
                 }
@@ -143,7 +178,9 @@
                 day: 1,
                 fajr: "5:30 AM",
                 dhuhr: "1:30 PM",
-                jumuah: "1:00 PM",
+                jumuah1: "1:31 PM",
+                jumuah2: "2:30 PM",
+                jumuah3: "3:30 PM",
                 asr: "4:45 PM",
                 maghrib: "7:15 PM",
                 isha: "8:45 PM"
@@ -179,7 +216,9 @@
             prayerTimes = {
                 fajr: todayData.fajr,
                 dhuhr: todayData.dhuhr,
-                jumuah: todayData.jumuah,
+                jumuah1: todayData.jumuah1,
+                jumuah2: todayData.jumuah2,
+                jumuah3: todayData.jumuah3,
                 asr: todayData.asr,
                 maghrib: todayData.maghrib,
                 isha: todayData.isha,
@@ -190,7 +229,9 @@
             prayerTimes = {
                 fajr: prayerTimesData[0]?.fajr || "5:30 AM",
                 dhuhr: prayerTimesData[0]?.dhuhr || "1:30 PM",
-                jumuah: prayerTimesData[0]?.jumuah || "1:00 PM",
+                jumuah1: prayerTimesData[0]?.jumuah1 || "1:31 PM",
+                jumuah2: prayerTimesData[0]?.jumuah2 || "2:30 PM",
+                jumuah3: prayerTimesData[0]?.jumuah3 || "3:30 PM",
                 asr: prayerTimesData[0]?.asr || "4:45 PM",
                 maghrib: prayerTimesData[0]?.maghrib || "7:15 PM",
                 isha: prayerTimesData[0]?.isha || "8:45 PM",
@@ -266,7 +307,8 @@
         // Define prayer order - on Friday, replace Dhuhr with Jumuah
         let prayerOrder = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
         if (isFriday) {
-            prayerOrder = ['fajr', 'jumuah', 'asr', 'maghrib', 'isha'];
+            // Use the first Jumuah time for Friday prayer order
+            prayerOrder = ['fajr', 'jumuah1', 'asr', 'maghrib', 'isha'];
         }
         const prayerTimes = {};
         
@@ -924,6 +966,47 @@
                                     text-align: center !important;
                                 }
                             }
+                            
+                            /* Mobile-first responsive design for Jumuah grid */
+                            .jumuah-grid {
+                                display: flex !important;
+                                flex-direction: column !important;
+                                gap: 8px !important;
+                                margin-top: 12px !important;
+                                width: 100% !important;
+                                max-width: 100% !important;
+                                box-sizing: border-box !important;
+                                overflow: hidden !important;
+                            }
+                            
+                            /* All screen sizes - Single column layout */
+                            @media (max-width: 767px) {
+                                .jumuah-grid {
+                                    gap: 8px !important;
+                                    padding: 0 4px !important;
+                                }
+                            }
+                            
+                            @media (min-width: 768px) and (max-width: 1023px) {
+                                .jumuah-grid {
+                                    gap: 8px !important;
+                                    padding: 0 6px !important;
+                                }
+                            }
+                            
+                            @media (min-width: 1024px) and (max-width: 1365px) {
+                                .jumuah-grid {
+                                    gap: 8px !important;
+                                    padding: 0 8px !important;
+                                }
+                            }
+                            
+                            @media (min-width: 1366px) {
+                                .jumuah-grid {
+                                    gap: 8px !important;
+                                    padding: 0 10px !important;
+                                }
+                            }
                         </style>
                         
                         <div class="prayer-item" role="listitem" data-prayer="fajr" style="
@@ -1222,22 +1305,70 @@
                         ">${CONFIG.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called'}</div>
                     </div>
                     
-                    <div style="
+                    <div class="jumuah-section" style="
                         text-align: center;
-                        margin: 24px 0;
-                        padding: 24px;
+                        margin: 16px 0;
+                        padding: 16px;
                         background: rgba(255, 255, 255, 0.08);
                         border-radius: 16px;
                         border: 2px solid rgba(255, 255, 255, 0.15);
+                        overflow: hidden;
+                        box-sizing: border-box;
                     ">
-                        <div style="
-                            color: ${CONFIG.accentColor};
-                            font-size: 18px;
-                            font-weight: 600;
-                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                            letter-spacing: -0.01em;
-                            line-height: 1.4;
-                        ">Jumuah Prayer: ${iqamaTimes.jumuah}</div>
+                        ${CONFIG.jumuahCount === 1 ? `
+                            <div style="
+                                color: ${CONFIG.accentColor};
+                                font-size: 18px;
+                                font-weight: 600;
+                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                letter-spacing: -0.01em;
+                                line-height: 1.4;
+                            ">Jumuah Prayer: ${iqamaTimes.jumuah1}</div>
+                        ` : `
+                            <div style="
+                                color: ${CONFIG.accentColor};
+                                font-size: 16px;
+                                font-weight: 600;
+                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                letter-spacing: -0.01em;
+                                line-height: 1.4;
+                                margin-bottom: 16px;
+                            ">Jumuah Prayers</div>
+                            <div class="jumuah-grid" style="
+                                display: flex;
+                                flex-direction: column;
+                                gap: 8px;
+                                margin-top: 12px;
+                                width: 100%;
+                                max-width: 100%;
+                                box-sizing: border-box;
+                                overflow: hidden;
+                            ">
+                                ${[1, 2, 3].slice(0, CONFIG.jumuahCount).map(num => `
+                                    <div style="
+                                        padding: 8px 6px;
+                                        background: rgba(255, 255, 255, 0.1);
+                                        border-radius: 8px;
+                                        border: 1px solid rgba(255, 255, 255, 0.2);
+                                        min-width: 0;
+                                        box-sizing: border-box;
+                                        overflow: hidden;
+                                    ">
+                                        <div style="
+                                            color: rgba(255, 255, 255, 0.8);
+                                            font-size: 12px;
+                                            font-weight: 500;
+                                            margin-bottom: 6px;
+                                        ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} Jumuah</div>
+                                        <div style="
+                                            color: ${CONFIG.accentColor};
+                                            font-size: 14px;
+                                            font-weight: 600;
+                                        ">${iqamaTimes[`jumuah${num}`] || '1:30 PM'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
                     </div>
                     
                     <div style="
@@ -1345,6 +1476,14 @@
 
     // Initialize the widget by fetching data first
     fetchPrayerTimes();
+    
+    // Only auto-create widget if not in demo mode
+    if (!document.getElementById('widget-preview')) {
+        console.log('🚀 Auto-creating widget (not in demo mode)');
+        createWidget();
+    } else {
+        console.log('🎭 Demo mode detected, widget will be created manually');
+    }
     
     // Expose functions for interactive demo
     window.refreshWidget = async () => {

@@ -123,9 +123,20 @@ function updateJumuahSectionSmoothly(widget, jumuahCount) {
     
     const jumuahSection = widget.querySelector('.jumuah-section');
     if (!jumuahSection) {
-        console.log('❌ No Jumuah section found');
+        console.log('❌ No Jumuah section found, recreating widget');
+        // Fallback to full widget recreation
+        window.createWidget().then(() => {
+            const newWidget = document.getElementById('iqama-widget');
+            if (newWidget && document.getElementById('widget-preview')) {
+                document.getElementById('widget-preview').innerHTML = '';
+                document.getElementById('widget-preview').appendChild(newWidget);
+            }
+        });
         return;
     }
+    
+    // Get current accent color from widget
+    const accentColor = getComputedStyle(widget).getPropertyValue('--accent-color') || '#E5E7EB';
     
     // Use fallback times for speed
     const currentTimes = {
@@ -139,199 +150,110 @@ function updateJumuahSectionSmoothly(widget, jumuahCount) {
     if (jumuahCount === 1) {
         newJumuahHTML = `
             <div style="
-                margin-bottom: var(--space-lg);
-                text-align: center;
-            ">
-                <div style="
-                    color: var(--accent-color);
-                    font-size: var(--text-3xl);
-                    font-weight: 700;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    letter-spacing: -0.02em;
-                    line-height: 1.2;
-                    margin-bottom: var(--space-md);
-                ">JUMUAH</div>
-                <div style="
-                    color: var(--accent-color);
-                    font-size: var(--text-lg);
-                    font-weight: 500;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    letter-spacing: -0.01em;
-                    line-height: 1.3;
-                    opacity: 0.9;
-                ">Friday Prayer</div>
-            </div>
-            
-            <div style="
-                padding: var(--space-lg) var(--space-md);
-                background: rgba(255, 255, 255, 0.05);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
-                position: relative;
-                margin: 0 auto;
-                transition: all 0.3s ease;
-                min-height: 90px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            ">
-                <div style="
-                    color: var(--accent-color);
-                    font-size: var(--text-3xl);
-                    font-weight: 700;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    line-height: 1.1;
-                    text-align: center;
-                    letter-spacing: -0.02em;
-                ">${currentTimes.jumuah1}</div>
-            </div>
+                color: ${accentColor};
+                font-size: 18px;
+                font-weight: 600;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                letter-spacing: -0.01em;
+                line-height: 1.4;
+            ">Jumuah Prayer: ${currentTimes.jumuah1}</div>
         `;
-        jumuahSection.style.maxWidth = '320px';
     } else {
         newJumuahHTML = `
             <div style="
-                margin-bottom: var(--space-md);
-                text-align: center;
-            ">
-                <div style="
-                    color: var(--accent-color);
-                    font-size: var(--text-2xl);
-                    font-weight: 700;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    letter-spacing: -0.02em;
-                    line-height: 1.2;
-                    margin-bottom: var(--space-sm);
-                ">JUMUAH PRAYERS</div>
-                <div style="
-                    color: var(--accent-color);
-                    font-size: var(--text-sm);
-                    font-weight: 500;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    letter-spacing: -0.01em;
-                    line-height: 1.3;
-                    opacity: 0.9;
-                ">Friday Prayers</div>
-            </div>
-            
-            <div style="
+                color: ${accentColor};
+                font-size: 16px;
+                font-weight: 600;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                letter-spacing: -0.01em;
+                line-height: 1.4;
+                margin-bottom: 16px;
+            ">Jumuah Prayers</div>
+            <div class="jumuah-grid" style="
                 display: grid;
-                grid-template-columns: 1fr;
-                gap: var(--space-sm);
-                align-items: center;
-                width: 100%;
-                max-width: 100%;
-                overflow: hidden;
+                grid-template-columns: ${jumuahCount === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'};
+                gap: 16px;
+                margin-top: 16px;
             ">
-                ${[1, 2, 3].slice(0, jumuahCount).map(num => {
-                    const jumuahKey = `jumuah${num}`;
-                    return `
+                ${[1, 2, 3].slice(0, jumuahCount).map(num => `
+                    <div style="
+                        padding: 16px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border-radius: 12px;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    ">
                         <div style="
-                            padding: var(--space-md);
-                            background: rgba(255, 255, 255, 0.05);
-                            border: 2px solid rgba(255, 255, 255, 0.1);
-                            border-radius: 12px;
-                            min-height: 60px;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            position: relative;
-                            width: 100%;
-                            max-width: 100%;
-                            box-sizing: border-box;
-                            overflow: hidden;
-                        ">
-                            <div style="
-                                color: var(--accent-color);
-                                font-size: var(--text-xs);
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: var(--space-xs);
-                                opacity: 0.8;
-                                text-align: center;
-                            ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} JUMUAH</div>
-                            <div style="
-                                color: var(--accent-color);
-                                font-size: var(--text-lg);
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.02em;
-                                line-height: 1.1;
-                                text-align: center;
-                            ">${currentTimes[jumuahKey]}</div>
-                        </div>
-                    `;
-                }).join('')}
+                            color: rgba(255, 255, 255, 0.8);
+                            font-size: 14px;
+                            font-weight: 500;
+                            margin-bottom: 8px;
+                        ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} Jumuah</div>
+                        <div style="
+                            color: ${accentColor};
+                            font-size: 16px;
+                            font-weight: 600;
+                        ">${currentTimes[`jumuah${num}`] || '1:30 PM'}</div>
+                    </div>
+                `).join('')}
             </div>
         `;
-        
-        // Set responsive max-width based on count
-        if (jumuahCount === 2) {
-            jumuahSection.style.maxWidth = '320px';
-        } else if (jumuahCount === 3) {
-            jumuahSection.style.maxWidth = '480px';
+    }
+    
+    // Update the Jumuah section content
+    jumuahSection.innerHTML = newJumuahHTML;
+    
+    // Add responsive CSS for the jumuah-grid
+    if (jumuahCount > 1) {
+        const jumuahGrid = jumuahSection.querySelector('.jumuah-grid');
+        if (jumuahGrid) {
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Mobile-first responsive design for Jumuah grid */
+                .jumuah-grid {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 8px !important;
+                    margin-top: 12px !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                    overflow: hidden !important;
+                }
+                
+                /* All screen sizes - Single column layout */
+                @media (max-width: 767px) {
+                    .jumuah-grid {
+                        gap: 8px !important;
+                        padding: 0 4px !important;
+                    }
+                }
+                
+                @media (min-width: 768px) and (max-width: 1023px) {
+                    .jumuah-grid {
+                        gap: 8px !important;
+                        padding: 0 6px !important;
+                    }
+                }
+                
+                @media (min-width: 1024px) and (max-width: 1365px) {
+                    .jumuah-grid {
+                        gap: 8px !important;
+                        padding: 0 8px !important;
+                    }
+                }
+                
+                @media (min-width: 1366px) {
+                    .jumuah-grid {
+                        gap: 8px !important;
+                        padding: 0 10px !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
         }
     }
     
-    // Smoothly update the content
-    jumuahSection.style.opacity = '0.7';
-    setTimeout(() => {
-        jumuahSection.innerHTML = newJumuahHTML;
-        jumuahSection.style.opacity = '1';
-        
-        // Add responsive CSS for the grid
-        const style = document.createElement('style');
-        style.textContent = `
-            @media (min-width: 480px) {
-                .jumuah-section > div:last-child {
-                    grid-template-columns: ${jumuahCount === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'} !important;
-                    gap: var(--space-sm) !important;
-                    max-width: 100% !important;
-                    overflow: hidden !important;
-                }
-            }
-            
-            @media (min-width: 640px) {
-                .jumuah-section > div:last-child {
-                    grid-template-columns: ${jumuahCount === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'} !important;
-                    gap: var(--space-md) !important;
-                    max-width: 100% !important;
-                    overflow: hidden !important;
-                }
-            }
-            
-            @media (min-width: 768px) {
-                .jumuah-section > div:last-child {
-                    grid-template-columns: ${jumuahCount === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'} !important;
-                    gap: var(--space-lg) !important;
-                    max-width: 100% !important;
-                    overflow: hidden !important;
-                }
-            }
-            
-            @media (min-width: 1024px) {
-                .jumuah-section > div:last-child {
-                    grid-template-columns: ${jumuahCount === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'} !important;
-                    gap: var(--space-lg) !important;
-                    max-width: 100% !important;
-                    overflow: hidden !important;
-                }
-            }
-        `;
-        
-        // Remove any existing responsive styles
-        const existingStyle = document.getElementById('jumuah-responsive-style');
-        if (existingStyle) {
-            existingStyle.remove();
-        }
-        
-        // Add new responsive styles
-        style.id = 'jumuah-responsive-style';
-        document.head.appendChild(style);
-        
-        console.log('✅ Jumuah section updated smoothly');
-    }, 150);
+    console.log('✅ Jumuah section updated successfully');
 }
 
 // Update generated code display
@@ -673,6 +595,33 @@ document.addEventListener('click', (e) => {
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing demo...');
+    
+    // Initialize configuration from active buttons
+    const activeTimeButton = document.querySelector('.time-button.active');
+    const activeJumuahButton = document.querySelector('.jumuah-button.active');
+    const activeColorScheme = document.querySelector('.scheme-option.active');
+    
+    if (activeTimeButton) {
+        currentTimeType = activeTimeButton.dataset.time;
+        window.IqamaWidgetConfig.timeType = currentTimeType;
+        console.log('⏰ Time type initialized from active button:', currentTimeType);
+    }
+    
+    if (activeJumuahButton) {
+        currentJumuahCount = parseInt(activeJumuahButton.dataset.count);
+        window.IqamaWidgetConfig.jumuahCount = currentJumuahCount;
+        console.log('🕌 Jumuah count initialized from active button:', currentJumuahCount);
+    }
+    
+    if (activeColorScheme) {
+        currentBackgroundColor = activeColorScheme.dataset.background;
+        currentAccentColor = activeColorScheme.dataset.accent;
+        window.IqamaWidgetConfig.backgroundColor = currentBackgroundColor;
+        window.IqamaWidgetConfig.accentColor = currentAccentColor;
+        console.log('🎨 Colors initialized from active scheme:', currentBackgroundColor, currentAccentColor);
+    }
+    
+    console.log('📊 Final config before widget creation:', window.IqamaWidgetConfig);
     
     // Initialize the widget
     if (window.createWidget) {
