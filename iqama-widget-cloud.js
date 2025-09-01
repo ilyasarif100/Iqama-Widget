@@ -249,20 +249,34 @@
             };
         }
         
-        // Get sunrise time from API if we have location data
+        // Get sunrise time - optimized for speed
         const currentConfigForTimes = window.IqamaWidgetConfig || CONFIG;
-        if (currentConfigForTimes.location) {
+        const skipSunriseAPI = currentConfigForTimes.skipSunriseAPI || currentConfigForTimes.skipAllAPIs;
+        const useCachedSunrise = currentConfigForTimes.useCachedSunrise;
+        
+        if (skipSunriseAPI) {
+            // Skip API call for speed - use fallback
+            prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise || '6:30 AM';
+            console.log('⚡ Skipping sunrise API for speed, using fallback:', prayerTimes.sunrise);
+        } else if (currentConfigForTimes.location) {
             try {
-                const coords = await getCoordinatesFromAddress(currentConfigForTimes.location);
-                const sunriseTime = await getSunriseTime(coords.lat, coords.lng);
-                prayerTimes.sunrise = sunriseTime;
-                console.log('🌅 Sunrise time from API:', sunriseTime, 'for', currentConfigForTimes.location);
+                // Use cached sunrise if available and configured
+                if (useCachedSunrise && currentConfigForTimes.fallbackSunrise) {
+                    prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise;
+                    console.log('🌅 Using cached sunrise time:', prayerTimes.sunrise);
+                } else {
+                    // Get coordinates for the location
+                    const coords = await getCoordinatesFromAddress(currentConfigForTimes.location);
+                    const sunriseTime = await getSunriseTime(coords.lat, coords.lng);
+                    prayerTimes.sunrise = sunriseTime;
+                    console.log('🌅 Sunrise time from API:', sunriseTime, 'for', currentConfigForTimes.location);
+                }
             } catch (error) {
                 console.log('Could not fetch sunrise time, using default');
-                prayerTimes.sunrise = '6:30 AM';
+                prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise || '6:30 AM';
             }
         } else {
-            prayerTimes.sunrise = '6:30 AM';
+            prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise || '6:30 AM';
         }
         
         return prayerTimes;
@@ -398,24 +412,33 @@
             if (data.status === 'OK' && data.results.sunrise) {
                 const sunriseUTC = new Date(data.results.sunrise);
                 
-                // Get timezone with fallback methods
+                // Get timezone - optimized for speed
                 let timeZoneId;
-                try {
-                    // Method 1: TimeAPI.io (fastest)
-                    const tzResp = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`, {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    if (tzResp.ok) {
-                        const tzData = await tzResp.json();
-                        timeZoneId = tzData && (tzData.timeZone || tzData.timezone || tzData.time_zone);
-                    }
-                } catch (e) {
-                    console.log('Timezone lookup error:', e);
-                }
+                const currentConfig = window.IqamaWidgetConfig || CONFIG;
+                const skipTimezoneAPI = currentConfig.skipTimezoneAPI || currentConfig.skipAllAPIs;
                 
-                // Method 2: Browser timezone fallback
-                if (!timeZoneId) {
+                if (skipTimezoneAPI) {
+                    // Skip timezone API for speed - use browser timezone
                     timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    console.log('⚡ Skipping timezone API for speed, using browser timezone:', timeZoneId);
+                } else {
+                    try {
+                        // Method 1: TimeAPI.io (fastest)
+                        const tzResp = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`, {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (tzResp.ok) {
+                            const tzData = await tzResp.json();
+                            timeZoneId = tzData && (tzData.timeZone || tzData.timezone || tzData.time_zone);
+                        }
+                    } catch (e) {
+                        console.log('Timezone lookup error:', e);
+                    }
+                    
+                    // Method 2: Browser timezone fallback
+                    if (!timeZoneId) {
+                        timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    }
                 }
                 
                 const localTime = new Intl.DateTimeFormat('en-US', {
@@ -1498,10 +1521,25 @@ function getCardColors(backgroundColor) {
         }, timeUntilMidnight);
     }
 
-    // Initialize the widget by fetching data first
+    // Initialize the widget with speed optimizations
     async function initializeWidget() {
         try {
-            console.log('🔄 Initializing widget...');
+            console.log('🔄 Initializing widget with speed optimizations...');
+            
+            // Check for speed optimization flags
+            const skipTimezoneAPI = CONFIG.skipTimezoneAPI || CONFIG.skipAllAPIs;
+            const skipSunriseAPI = CONFIG.skipSunriseAPI || CONFIG.skipAllAPIs;
+            const useCachedSunrise = CONFIG.useCachedSunrise;
+            const parallelAPICalls = CONFIG.parallelAPICalls;
+            
+            console.log('⚡ Speed optimizations:', {
+                skipTimezoneAPI,
+                skipSunriseAPI,
+                useCachedSunrise,
+                parallelAPICalls
+            });
+            
+            // Fetch prayer times (this is the most important data)
             await fetchPrayerTimes();
             console.log('✅ Prayer times fetched successfully');
             
