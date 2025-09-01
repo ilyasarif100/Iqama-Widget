@@ -391,8 +391,10 @@ function updateGeneratedCode(config) {
     }
     
     const code = `<!-- Prayer Times Widget -->
-&lt;script src="iqama-widget-cloud.js"&gt;&lt;/script&gt;
+&lt;div id="iqama-widget-container"&gt;&lt;/div&gt;
+
 &lt;script&gt;
+// Widget configuration
 window.IqamaWidgetConfig = {
     googleSheetUrl: '${config.googleSheetUrl || ''}',
     title: '${config.title || ''}',
@@ -404,6 +406,11 @@ window.IqamaWidgetConfig = {
     timeType: '${config.timeType || 'athan'}',
     jumuahCount: ${config.jumuahCount || 1}
 };
+
+// Load the widget script
+const script = document.createElement('script');
+script.src = 'https://ilyasarif.github.io/Iqama-Widget/iqama-widget-cloud.js';
+document.head.appendChild(script);
 &lt;/script&gt;`;
     
     // Update the DOM element
