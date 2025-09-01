@@ -219,13 +219,7 @@ function updateTimeTypeSmoothly(widget, timeType) {
         timeTypeDisplay.textContent = timeType === 'athan' ? '🕌 Athan Times' : '🕌 Iqama Times';
     }
     
-    // Update the explanation text (legacy)
-    const explanationText = widget.querySelector('.time-explanation');
-    if (explanationText) {
-        explanationText.textContent = timeType === 'athan' ? 
-            'Times shown are when the Athan (call to prayer) is announced' : 
-            'Times shown are when the Iqama (prayer begins) is called';
-    }
+
     
     console.log('✅ Time type updated smoothly');
 }

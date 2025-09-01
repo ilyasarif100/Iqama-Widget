@@ -1607,25 +1607,7 @@ function getCardColors(backgroundColor) {
                             ` : ''}
                         </div>
                     </div>
-                    
-                    <div style="
-                        text-align: center;
-                        margin: 16px 0;
-                        padding: 16px;
-                        background: rgba(255, 255, 255, 0.05);
-                        border-radius: 12px;
-                        border: 1px solid rgba(255, 255, 255, 0.1);
-                    ">
-                        <div class="time-explanation" style="
-                            color: ${textColor};
-                            font-size: 14px;
-                            font-weight: 500;
-                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                            letter-spacing: -0.01em;
-                            line-height: 1.4;
-                            opacity: 0.8;
-                        ">${currentConfig.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called'}</div>
-                    </div>
+
                     
                     <div class="jumuah-section" style="
                         text-align: center;
