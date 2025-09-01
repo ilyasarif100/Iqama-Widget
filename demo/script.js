@@ -409,7 +409,7 @@ window.IqamaWidgetConfig = {
 
 // Load the widget script
 const script = document.createElement('script');
-script.src = 'https://ilyasarif.github.io/Iqama-Widget/iqama-widget-cloud.js';
+script.src = 'https://ilyasarif100.github.io/Iqama-Widget/iqama-widget-cloud.js';
 document.head.appendChild(script);
 </script>`;
     
