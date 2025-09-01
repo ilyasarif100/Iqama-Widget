@@ -632,6 +632,77 @@ body {
     }
 }
 
+/* Responsive Testing Toolbar */
+.responsive-toolbar {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.toolbar-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.screen-size-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+}
+
+.screen-btn {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.screen-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.screen-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.screen-btn.active:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* Mobile responsive toolbar */
+@media (max-width: 480px) {
+    .responsive-toolbar {
+        padding: 10px 12px;
+        margin-bottom: 16px;
+    }
+    
+    .screen-size-buttons {
+        gap: 4px;
+    }
+    
+    .screen-btn {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+}
+
 .controls {
     display: flex;
     flex-direction: column;

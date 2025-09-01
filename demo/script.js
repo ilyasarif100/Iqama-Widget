@@ -1454,3 +1454,70 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 });
+
+// Responsive Testing Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const screenButtons = document.querySelectorAll('.screen-btn');
+    const widgetPreview = document.getElementById('widget-preview');
+    
+    screenButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            screenButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Get the width from data attribute
+            const width = this.getAttribute('data-width');
+            const label = this.getAttribute('data-label');
+            
+            // Apply the width to the widget preview
+            if (width === '100') {
+                // Full width
+                widgetPreview.style.maxWidth = '100%';
+                widgetPreview.style.width = '100%';
+                widgetPreview.style.margin = '0 auto';
+            } else {
+                // Specific width
+                widgetPreview.style.maxWidth = width + 'px';
+                widgetPreview.style.width = width + 'px';
+                widgetPreview.style.margin = '0 auto';
+            }
+            
+            // Add a visual indicator
+            widgetPreview.style.border = '2px solid #3b82f6';
+            widgetPreview.style.borderRadius = '8px';
+            widgetPreview.style.padding = '10px';
+            widgetPreview.style.backgroundColor = '#f8fafc';
+            
+            // Add a label above the widget
+            let labelElement = widgetPreview.querySelector('.screen-size-label');
+            if (!labelElement) {
+                labelElement = document.createElement('div');
+                labelElement.className = 'screen-size-label';
+                labelElement.style.cssText = `
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #3b82f6;
+                    text-align: center;
+                    margin-bottom: 8px;
+                    padding: 4px 8px;
+                    background: #dbeafe;
+                    border-radius: 4px;
+                    display: inline-block;
+                `;
+                widgetPreview.insertBefore(labelElement, widgetPreview.firstChild);
+            }
+            labelElement.textContent = `Testing: ${label}`;
+            
+            console.log(`📱 Testing widget at ${label} (${width}px)`);
+        });
+    });
+    
+    // Initialize with 360px (mobile) as default
+    const defaultButton = document.querySelector('.screen-btn[data-width="360"]');
+    if (defaultButton) {
+        defaultButton.click();
+    }
+});

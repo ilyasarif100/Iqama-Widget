@@ -758,7 +758,7 @@ function getCardColors(backgroundColor) {
             ">
                 <div style="
                     text-align: center;
-                    margin-bottom: 32px;
+                    margin-bottom: 24px;
                 ">
                     <div class="widget-title" style="
                         color: ${textColor};
@@ -823,431 +823,95 @@ function getCardColors(backgroundColor) {
                         </div>
                     </div>
                     
-                    <div class="prayer-grid" 
+                    <div class="prayer-list" 
                          role="list" 
                          aria-label="Daily Prayer Times"
                          style="
-                            display: grid;
-                            grid-template-columns: repeat(2, 1fr);
+                            display: flex;
+                            flex-direction: column;
                             gap: 12px;
-                            margin-bottom: 32px;
-                            padding: 0 8px;
-                            justify-items: center;
-                            align-items: center;
-                            text-align: center;
+                            margin-bottom: 24px;
+                            padding: 0 4px;
                             width: 100%;
                             max-width: 100%;
                             margin-left: auto;
                             margin-right: auto;
-                            justify-content: center;
                         ">
                         <style>
-                            /* Mobile-first responsive design */
+                            /* Mobile-first responsive design - One column for all */
                             #iqama-widget {
                                 max-width: 100% !important;
                                 width: 100% !important;
                                 margin: 16px auto !important;
                             }
                             
-                            /* Mobile (360px, 390px) */
+                            /* Mobile (360px) - Full width with padding */
                             @media (min-width: 360px) {
                                 #iqama-widget {
-                                    width: 100% !important;
-                                    max-width: 340px !important;
+                                    width: calc(100% - 32px) !important;
+                                    max-width: 360px !important;
                                     margin: 16px auto !important;
                                 }
                             }
                             
+                            /* Mobile (390px) - Slightly wider */
                             @media (min-width: 390px) {
                                 #iqama-widget {
-                                    width: 100% !important;
-                                    max-width: 370px !important;
+                                    width: calc(100% - 32px) !important;
+                                    max-width: 390px !important;
                                     margin: 18px auto !important;
                                 }
                             }
                             
-                            /* Tablets (768px, 810px) */
+                            /* Tablet (768px) - Good tablet width */
                             @media (min-width: 768px) {
                                 #iqama-widget {
-                                    width: 100% !important;
-                                    max-width: 720px !important;
+                                    width: calc(100% - 48px) !important;
+                                    max-width: 480px !important;
                                     margin: 24px auto !important;
                                 }
                             }
                             
+                            /* Tablet (810px) - Slightly wider tablet */
                             @media (min-width: 810px) {
                                 #iqama-widget {
-                                    width: 100% !important;
-                                    max-width: 760px !important;
+                                    width: calc(100% - 48px) !important;
+                                    max-width: 520px !important;
                                     margin: 28px auto !important;
                                 }
                             }
                             
-                            /* Desktops/Laptops (1366px, 1920px) */
+                            /* Desktop (1366px) - Comfortable desktop width */
                             @media (min-width: 1366px) {
                                 #iqama-widget {
-                                    width: 100% !important;
-                                    max-width: 800px !important;
+                                    width: calc(100% - 64px) !important;
+                                    max-width: 600px !important;
                                     margin: 32px auto !important;
                                 }
                             }
                             
+                            /* Large Desktop (1920px) - Optimal large screen width */
                             @media (min-width: 1920px) {
                                 #iqama-widget {
-                                    width: 100% !important;
-                                    max-width: 900px !important;
+                                    width: calc(100% - 80px) !important;
+                                    max-width: 700px !important;
                                     margin: 40px auto !important;
                                 }
                             }
                             
-                            /* Mobile-first responsive design */
-                            .prayer-grid {
-                                display: grid !important;
-                                grid-template-columns: repeat(1, 1fr) !important;
-                                gap: 10px !important;
-                                padding: 0 6px !important;
-                                justify-items: center !important;
-                                align-items: center !important;
-                                text-align: center !important;
-                                width: 100% !important;
-                                max-width: 100% !important;
-                                margin-left: auto !important;
-                                margin-right: auto !important;
-                                justify-content: center !important;
-                            }
-                            
-                            .prayer-item {
-                                padding: 16px 12px !important;
-                                min-height: 80px !important;
-                                width: 100% !important;
-                                max-width: 100% !important;
-                                box-sizing: border-box !important;
-                                display: flex !important;
-                                flex-direction: column !important;
-                                justify-content: center !important;
-                                align-items: center !important;
-                                text-align: center !important;
-                                flex: 1 !important;
-                                min-width: 0 !important;
-                            }
-                            
-                            .prayer-item div:first-child {
-                                font-size: 16px !important;
-                                margin-bottom: 8px !important;
-                                text-align: center !important;
-                                width: 100% !important;
-                                display: flex !important;
-                                justify-content: center !important;
-                                align-items: center !important;
-                                white-space: nowrap !important;
-                            }
-                            
-                            .prayer-item div:last-child {
-                                font-size: 20px !important;
-                                text-align: center !important;
-                                width: 100% !important;
-                                display: flex !important;
-                                justify-content: center !important;
-                                align-items: center !important;
-                                white-space: nowrap !important;
-                            }
+
                             
                             /* Mobile (360px, 390px) */
-                            @media (min-width: 360px) {
-                                .prayer-grid {
-                                    gap: 12px !important;
-                                    padding: 0 8px !important;
-                                    justify-items: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin-left: auto !important;
-                                    margin-right: auto !important;
-                                    justify-content: center !important;
-                                    display: grid !important;
-                                    grid-template-columns: repeat(1, 1fr) !important;
-                                }
-                                
-                                .prayer-item {
-                                    padding: 20px 16px !important;
-                                    min-height: 90px !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                    flex: 1 !important;
-                                    min-width: 0 !important;
-                                }
-                                
-                                .prayer-item div:first-child {
-                                    font-size: 18px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                                
-                                .prayer-item div:last-child {
-                                    font-size: 22px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                            }
+
                             
-                            @media (min-width: 390px) {
-                                .prayer-grid {
-                                    gap: 14px !important;
-                                    padding: 0 10px !important;
-                                    justify-items: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin-left: auto !important;
-                                    margin-right: auto !important;
-                                    justify-content: center !important;
-                                    display: grid !important;
-                                    grid-template-columns: repeat(1, 1fr) !important;
-                                }
-                                
-                                .prayer-item {
-                                    padding: 24px 20px !important;
-                                    min-height: 100px !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                    flex: 1 !important;
-                                    min-width: 0 !important;
-                                }
-                                
-                                .prayer-item div:first-child {
-                                    font-size: 20px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                                
-                                .prayer-item div:last-child {
-                                    font-size: 24px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                            }
+
                             
-                            /* Tablets (768px, 810px) */
-                            @media (min-width: 768px) {
-                                .prayer-grid {
-                                    grid-template-columns: repeat(2, 1fr) !important;
-                                    gap: 16px !important;
-                                    padding: 0 12px !important;
-                                    justify-items: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin-left: auto !important;
-                                    margin-right: auto !important;
-                                    justify-content: center !important;
-                                    display: grid !important;
-                                }
-                                
-                                .prayer-item {
-                                    padding: 16px 12px !important;
-                                    min-height: 80px !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                    flex: 1 !important;
-                                    min-width: 0 !important;
-                                }
-                                
-                                .prayer-item div:first-child {
-                                    font-size: 14px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                                
-                                .prayer-item div:last-child {
-                                    font-size: 18px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                            }
+
                             
-                            @media (min-width: 810px) {
-                                .prayer-grid {
-                                    gap: 18px !important;
-                                    padding: 0 14px !important;
-                                    justify-items: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin-left: auto !important;
-                                    margin-right: auto !important;
-                                    justify-content: center !important;
-                                    display: grid !important;
-                                    grid-template-columns: repeat(2, 1fr) !important;
-                                }
-                                
-                                .prayer-item {
-                                    padding: 18px 14px !important;
-                                    min-height: 85px !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                    flex: 1 !important;
-                                    min-width: 0 !important;
-                                }
-                                
-                                .prayer-item div:first-child {
-                                    font-size: 15px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                                
-                                .prayer-item div:last-child {
-                                    font-size: 19px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                            }
+
                             
                             /* Desktops/Laptops (1366px, 1920px) */
-                            @media (min-width: 1366px) {
-                                .prayer-grid {
-                                    gap: 20px !important;
-                                    padding: 0 16px !important;
-                                    justify-items: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin-left: auto !important;
-                                    margin-right: auto !important;
-                                    justify-content: center !important;
-                                    display: grid !important;
-                                    grid-template-columns: repeat(2, 1fr) !important;
-                                }
-                                
-                                .prayer-item {
-                                    padding: 20px 16px !important;
-                                    min-height: 90px !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                    flex: 1 !important;
-                                    min-width: 0 !important;
-                                }
-                                
-                                .prayer-item div:first-child {
-                                    font-size: 16px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                                
-                                .prayer-item div:last-child {
-                                    font-size: 20px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                            }
-                            
-                            @media (min-width: 1920px) {
-                                .prayer-grid {
-                                    gap: 24px !important;
-                                    padding: 0 20px !important;
-                                    justify-items: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin-left: auto !important;
-                                    margin-right: auto !important;
-                                    justify-content: center !important;
-                                    display: grid !important;
-                                    grid-template-columns: repeat(2, 1fr) !important;
-                                }
-                                
-                                .prayer-item {
-                                    padding: 24px 20px !important;
-                                    min-height: 100px !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    text-align: center !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    display: flex !important;
-                                    flex-direction: column !important;
-                                    flex: 1 !important;
-                                    min-width: 0 !important;
-                                }
-                                
-                                .prayer-item div:first-child {
-                                    font-size: 18px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                                
-                                .prayer-item div:last-child {
-                                    font-size: 22px !important;
-                                    text-align: center !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    white-space: nowrap !important;
-                                }
-                            }
+
                             
                             /* Mobile-first responsive design for Jumuah grid */
                             .jumuah-grid {
@@ -1313,29 +977,34 @@ function getCardColors(backgroundColor) {
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
+                            padding: 20px 24px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 80px;
+                            text-align: center;
                         ">
                             <div style="
                                 color: ${textColor};
-                                font-size: 14px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: 5px;
                                 letter-spacing: -0.01em;
                                 line-height: 1.2;
                                 opacity: 0.9;
                                 text-align: center;
-                                width: 100%;
+                                margin-bottom: 8px;
                             ">Fajr</div>
                             
                             <div style="
                                 color: ${textColor};
-                                font-size: 18px;
+                                font-size: 22px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 line-height: 1.1;
                                 letter-spacing: -0.02em;
                                 text-align: center;
-                                width: 100%;
                             ">${iqamaTimes.fajr}</div>
                             
                             ${currentPrayer === 'fajr' ? `
@@ -1363,29 +1032,34 @@ function getCardColors(backgroundColor) {
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
+                            padding: 20px 24px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 80px;
+                            text-align: center;
                         ">
                             <div style="
                                 color: ${textColor};
-                                font-size: 14px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: 5px;
                                 letter-spacing: -0.01em;
                                 line-height: 1.2;
                                 opacity: 0.9;
                                 text-align: center;
-                                width: 100%;
+                                margin-bottom: 8px;
                             ">Sunrise</div>
                             
                             <div style="
                                 color: ${textColor};
-                                font-size: 18px;
+                                font-size: 22px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 line-height: 1.1;
                                 letter-spacing: -0.02em;
                                 text-align: center;
-                                width: 100%;
                             ">${iqamaTimes.sunrise}</div>
                             
                             ${currentPrayer === 'sunrise' ? `
@@ -1413,29 +1087,34 @@ function getCardColors(backgroundColor) {
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
+                            padding: 20px 24px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 80px;
+                            text-align: center;
                         ">
                             <div style="
                                 color: ${textColor};
-                                font-size: 14px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: 5px;
                                 letter-spacing: -0.01em;
                                 line-height: 1.2;
                                 opacity: 0.9;
                                 text-align: center;
-                                width: 100%;
+                                margin-bottom: 8px;
                             ">Dhuhr</div>
                             
                             <div style="
                                 color: ${textColor};
-                                font-size: 18px;
+                                font-size: 22px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 line-height: 1.1;
                                 letter-spacing: -0.02em;
                                 text-align: center;
-                                width: 100%;
                             ">${iqamaTimes.dhuhr}</div>
                             
                             ${currentPrayer === 'dhuhr' ? `
@@ -1463,29 +1142,34 @@ function getCardColors(backgroundColor) {
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
+                            padding: 20px 24px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 80px;
+                            text-align: center;
                         ">
                             <div style="
                                 color: ${textColor};
-                                font-size: 14px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: 5px;
                                 letter-spacing: -0.01em;
                                 line-height: 1.2;
                                 opacity: 0.9;
                                 text-align: center;
-                                width: 100%;
+                                margin-bottom: 8px;
                             ">Asr</div>
                             
                             <div style="
                                 color: ${textColor};
-                                font-size: 18px;
+                                font-size: 22px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 line-height: 1.1;
                                 letter-spacing: -0.02em;
                                 text-align: center;
-                                width: 100%;
                             ">${iqamaTimes.asr}</div>
                             
                             ${currentPrayer === 'asr' ? `
@@ -1513,29 +1197,34 @@ function getCardColors(backgroundColor) {
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
+                            padding: 20px 24px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 80px;
+                            text-align: center;
                         ">
                             <div style="
                                 color: ${textColor};
-                                font-size: 14px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: 5px;
                                 letter-spacing: -0.01em;
                                 line-height: 1.2;
                                 opacity: 0.9;
                                 text-align: center;
-                                width: 100%;
+                                margin-bottom: 8px;
                             ">Maghrib</div>
                             
                             <div style="
                                 color: ${textColor};
-                                font-size: 18px;
+                                font-size: 22px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 line-height: 1.1;
                                 letter-spacing: -0.02em;
                                 text-align: center;
-                                width: 100%;
                             ">${iqamaTimes.maghrib}</div>
                             
                             ${currentPrayer === 'maghrib' ? `
@@ -1563,29 +1252,34 @@ function getCardColors(backgroundColor) {
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
+                            padding: 20px 24px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 80px;
+                            text-align: center;
                         ">
                             <div style="
                                 color: ${textColor};
-                                font-size: 14px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                margin-bottom: 5px;
                                 letter-spacing: -0.01em;
                                 line-height: 1.2;
                                 opacity: 0.9;
                                 text-align: center;
-                                width: 100%;
+                                margin-bottom: 8px;
                             ">Isha</div>
                             
                             <div style="
                                 color: ${textColor};
-                                font-size: 18px;
+                                font-size: 22px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 line-height: 1.1;
                                 letter-spacing: -0.02em;
                                 text-align: center;
-                                width: 100%;
                             ">${iqamaTimes.isha}</div>
                             
                             ${currentPrayer === 'isha' ? `
@@ -1611,7 +1305,7 @@ function getCardColors(backgroundColor) {
                     
                     <div class="jumuah-section" style="
                         text-align: center;
-                        margin: 16px 0;
+                        margin: 24px 0;
                         padding: 16px;
                         background: ${cardColors.background};
                         border-radius: 16px;
@@ -1630,25 +1324,25 @@ function getCardColors(backgroundColor) {
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 letter-spacing: -0.01em;
-                                line-height: 1.4;
+                                line-height: 1.2;
                                 margin-bottom: 8px;
                             ">Jumuah Prayer</div>
                             <div style="
                                 color: ${textColor};
-                                font-size: 16px;
-                                font-weight: 500;
+                                font-size: 22px;
+                                font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.4;
+                                line-height: 1.1;
+                                letter-spacing: -0.02em;
                             ">${iqamaTimes.jumuah1}</div>
                         ` : `
                             <div style="
                                 color: ${textColor};
-                                font-size: 16px;
+                                font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 letter-spacing: -0.01em;
-                                line-height: 1.4;
+                                line-height: 1.2;
                                 margin-bottom: 16px;
                             ">Jumuah Prayers</div>
                             <div class="jumuah-grid" style="
@@ -1675,15 +1369,21 @@ function getCardColors(backgroundColor) {
                                         overflow: hidden;
                                     ">
                                         <div style="
-                                            color: rgba(255, 255, 255, 0.8);
-                                            font-size: 12px;
-                                            font-weight: 500;
+                                            color: ${textColor};
+                                            font-size: 16px;
+                                            font-weight: 600;
+                                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                            letter-spacing: -0.01em;
+                                            line-height: 1.2;
                                             margin-bottom: 6px;
                                         ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} Jumuah Prayer</div>
                                         <div style="
                                             color: ${textColor};
-                                            font-size: 14px;
-                                            font-weight: 600;
+                                            font-size: 18px;
+                                            font-weight: 700;
+                                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                            line-height: 1.1;
+                                            letter-spacing: -0.02em;
                                         ">${iqamaTimes[`jumuah${num}`] || '1:30 PM'}</div>
                                     </div>
                                 `).join('')}
@@ -1693,7 +1393,7 @@ function getCardColors(backgroundColor) {
                     
                     <div style="
                         text-align: center;
-                        margin-top: 32px;
+                        margin-top: 24px;
                         padding: 0 8px;
                         display: flex;
                         justify-content: center;
