@@ -1164,250 +1164,218 @@ input[type="color"] {
     opacity: 0.6;
 }
 
+/* Location search dropdown styles */
+.location-search-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .location-suggestions {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
     background: white;
-    border: 1px solid #e2e8f0;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
+    margin-top: 4px;
 }
 
 .location-suggestion {
     padding: 12px 16px;
     cursor: pointer;
-    border-bottom: 1px solid #f1f5f9;
-    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
 }
 
-.location-suggestion:hover {
-    background-color: #f8fafc;
+.location-suggestion:hover,
+.location-suggestion.selected {
+    background-color: #f9fafb;
 }
 
 .location-suggestion:last-child {
     border-bottom: none;
 }
 
-.location-suggestion .suggestion-main {
+.suggestion-main {
     font-weight: 500;
-    color: var(--text);
+    color: #1f2937;
     margin-bottom: 2px;
 }
 
-.location-suggestion .suggestion-detail {
-    font-size: 14px;
-    color: var(--text-light);
-}
-
-.location-suggestion.selected {
-    background-color: var(--primary);
-    color: white;
-}
-
-.location-suggestion.selected .suggestion-main,
-.location-suggestion.selected .suggestion-detail {
-    color: white;
-}
-
-.location-status {
-    margin-top: 8px;
-    font-size: 14px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    display: none;
-}
-
-.location-status.success {
-    background: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #10b981;
-    display: block;
-}
-
-.location-status.error {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #f87171;
-    display: block;
-}
-
-.location-status.loading {
-    background: #f0f9ff;
-    color: #1e40af;
-    border: 1px solid #60a5fa;
-    display: block;
-}
-
-.location-choices {
-    margin-top: 12px;
-    padding: 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-.location-choices h4 {
-    margin-bottom: 8px;
-    color: var(--text);
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.location-choice {
-    padding: 8px 12px;
-    margin: 4px 0;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.location-choice:hover {
-    background: #f1f5f9;
-    border-color: var(--primary);
-}
-
-.location-choice.selected {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-
-/* Features Section */
-.features {
-    background: var(--surface);
-    padding: 80px 0;
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 32px;
-}
-
-.feature {
-    text-align: center;
-    padding: 24px;
-}
-
-.feature-icon {
-    font-size: 2.5rem;
-    margin-bottom: 16px;
-    color: var(--primary);
-}
-
-.feature h3 {
-    font-size: 1.125rem;
-    margin-bottom: 12px;
-    font-weight: 600;
-}
-
-.feature p {
-    color: var(--text-light);
-    line-height: 1.6;
+.suggestion-detail {
     font-size: 0.875rem;
+    color: #6b7280;
 }
 
-/* CTA Section */
-.cta-section {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    padding: 80px 0;
-    text-align: center;
-    color: white;
+/* Location validation styles */
+.location-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
 }
 
-.cta-section h2 {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    margin-bottom: 16px;
-    font-weight: 700;
+#location.invalid {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2;
 }
 
-.cta-section p {
-    font-size: 1.125rem;
-    margin-bottom: 32px;
-    opacity: 0.9;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+#location.valid {
+    border-color: transparent;
+    background-color: transparent;
 }
 
-/* Additional mobile optimizations */
-@media (max-width: 480px) {
-    .hero h1 {
-        font-size: 2rem;
-    }
-    
-    .hero .subtitle {
-        font-size: 1rem;
-    }
-    
-    .stat {
-        padding: 12px;
-    }
-    
-    .benefit-card {
-        padding: 24px;
-    }
-    
-    .demo-preview {
-        padding: 24px;
-    }
-    
-    .control-group {
-        padding: 20px;
-    }
-}
-
+/* Button Group Styles */
 .button-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: 12px;
+    margin-top: 16px;
 }
 
-.time-button, .jumuah-button {
+@media (min-width: 480px) {
+    .button-group {
+        gap: 14px;
+    }
+}
+
+@media (min-width: 768px) {
+    .button-group {
+        gap: 16px;
+    }
+}
+
+/* Time Type and Jumuah Button Styles */
+.time-button,
+.jumuah-button {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: var(--space-md) var(--space-lg);
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    gap: 8px;
+    padding: 16px;
+    border: 2px solid var(--border);
     border-radius: 12px;
-    color: var(--text-color);
-    font-size: var(--text-base);
-    font-weight: 600;
+    background: var(--surface);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: left;
     width: 100%;
+    font-family: inherit;
 }
 
-.time-button:hover, .jumuah-button:hover {
-    background: rgba(255, 255, 255, 0.1);
+.time-button:hover,
+.jumuah-button:hover {
     border-color: var(--primary);
+    background: var(--background);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.time-button.active, .jumuah-button.active {
-    background: var(--primary);
+.time-button.active,
+.jumuah-button.active {
     border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.time-button div:first-child,
+.jumuah-button div:first-child {
+    font-size: 1rem;
+    font-weight: 600;
+    color: inherit;
+}
+
+.time-button.active div:first-child,
+.jumuah-button.active div:first-child {
     color: white;
 }
 
 .button-description {
-    font-size: var(--text-sm);
-    font-weight: 400;
-    opacity: 0.8;
-    margin-top: var(--space-xs);
+    font-size: 0.875rem;
+    color: var(--text-light);
+    line-height: 1.4;
+    margin: 0;
 }
 
-.time-button.active .button-description, .jumuah-button.active .button-description {
-    opacity: 0.9;
+.time-button.active .button-description,
+.jumuah-button.active .button-description {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+@media (min-width: 480px) {
+    .time-button,
+    .jumuah-button {
+        padding: 18px;
+        gap: 10px;
+    }
+    
+    .time-button div:first-child,
+    .jumuah-button div:first-child {
+        font-size: 1.0625rem;
+    }
+    
+    .button-description {
+        font-size: 0.9rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .time-button,
+    .jumuah-button {
+        padding: 20px;
+        gap: 12px;
+    }
+    
+    .time-button div:first-child,
+    .jumuah-button div:first-child {
+        font-size: 1.125rem;
+    }
+    
+    .button-description {
+        font-size: 0.925rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .time-button,
+    .jumuah-button {
+        padding: 22px;
+    }
+    
+    .time-button div:first-child,
+    .jumuah-button div:first-child {
+        font-size: 1.1875rem;
+    }
+    
+    .button-description {
+        font-size: 0.95rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    .time-button,
+    .jumuah-button {
+        padding: 24px;
+    }
+    
+    .time-button div:first-child,
+    .jumuah-button div:first-child {
+        font-size: 1.25rem;
+    }
+    
+    .button-description {
+        font-size: 1rem;
+    }
 }

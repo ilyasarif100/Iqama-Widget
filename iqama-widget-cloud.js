@@ -122,22 +122,34 @@
                         return value.replace(/^"/, '').replace(/"$/, '').trim();
                     });
                     
-                    if (values.length >= 9) {
-                        const jumuahLabel = values[7]; // Column 8 (0-indexed)
-                        const jumuahTime = values[8];   // Column 9 (0-indexed)
+                    if (values.length >= 10) {
+                        const jumuahLabel = values[7];  // Column H (0-indexed)
+                        const jumuahStart = values[8];  // Column I (0-indexed) - Starts
+                        const jumuahEnd = values[9];    // Column J (0-indexed) - Ends
+                        
+                        console.log(`🔍 Row ${i}: Label="${jumuahLabel}", Start="${jumuahStart}", End="${jumuahEnd}"`);
+                        console.log(`🔍 All values in row ${i}:`, values);
                         
                         if (jumuahLabel === '1st Jumuah') {
-                            jumuahTimes.jumuah1 = jumuahTime;
+                            jumuahTimes.jumuah1 = `${jumuahStart} - ${jumuahEnd}`;
                         } else if (jumuahLabel === '2nd Jumuah') {
-                            jumuahTimes.jumuah2 = jumuahTime;
+                            jumuahTimes.jumuah2 = `${jumuahStart} - ${jumuahEnd}`;
                         } else if (jumuahLabel === '3rd Jumuah') {
-                            jumuahTimes.jumuah3 = jumuahTime;
+                            jumuahTimes.jumuah3 = `${jumuahStart} - ${jumuahEnd}`;
                         }
                     }
                 }
             }
             
             console.log('🕌 Jumuah times extracted:', jumuahTimes);
+            
+            // If no Jumuah times found in CSV, use fallback times
+            if (!jumuahTimes.jumuah1 && !jumuahTimes.jumuah2 && !jumuahTimes.jumuah3) {
+                console.log('⚠️ No Jumuah times found in CSV, using fallback times');
+                jumuahTimes.jumuah1 = '1:30 PM - 2:00 PM';
+                jumuahTimes.jumuah2 = '2:30 PM - 3:00 PM';
+                jumuahTimes.jumuah3 = '3:30 PM - 4:00 PM';
+            }
             
             // Then parse daily prayer times (skip the first 3 rows which contain Jumuah data)
             for (let i = 4; i < lines.length; i++) {
@@ -177,9 +189,9 @@
                 day: 1,
                 fajr: "5:30 AM",
                 dhuhr: "1:30 PM",
-                jumuah1: "1:31 PM",
-                jumuah2: "2:30 PM",
-                jumuah3: "3:30 PM",
+                jumuah1: "1:30 PM - 2:00 PM",
+                jumuah2: "2:30 PM - 3:00 PM",
+                jumuah3: "3:30 PM - 4:00 PM",
                 asr: "4:45 PM",
                 maghrib: "7:15 PM",
                 isha: "8:45 PM"
@@ -238,12 +250,13 @@
         }
         
         // Get sunrise time from API if we have location data
-        if (CONFIG.location && CONFIG.location !== 'Phoenix, AZ') {
+        const currentConfigForTimes = window.IqamaWidgetConfig || CONFIG;
+        if (currentConfigForTimes.location) {
             try {
-                const coords = await getCoordinatesFromAddress(CONFIG.location);
+                const coords = await getCoordinatesFromAddress(currentConfigForTimes.location);
                 const sunriseTime = await getSunriseTime(coords.lat, coords.lng);
                 prayerTimes.sunrise = sunriseTime;
-                console.log('🌅 Sunrise time from API:', sunriseTime);
+                console.log('🌅 Sunrise time from API:', sunriseTime, 'for', currentConfigForTimes.location);
             } catch (error) {
                 console.log('Could not fetch sunrise time, using default');
                 prayerTimes.sunrise = '6:30 AM';
@@ -370,25 +383,90 @@
     // Get sunrise time from API
     async function getSunriseTime(lat, lng) {
         try {
-            const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&formatted=0`);
+            // Primary API: Sunrise-Sunset with optimized parameters
+            const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&formatted=0&tzid=auto`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'IqamaWidget/1.0'
+                }
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
             const data = await response.json();
             
             if (data.status === 'OK' && data.results.sunrise) {
-                // Convert UTC time to local time
                 const sunriseUTC = new Date(data.results.sunrise);
-                const localTime = sunriseUTC.toLocaleTimeString('en-US', {
+                
+                // Get timezone with fallback methods
+                let timeZoneId;
+                try {
+                    // Method 1: TimeAPI.io (fastest)
+                    const tzResp = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (tzResp.ok) {
+                        const tzData = await tzResp.json();
+                        timeZoneId = tzData && (tzData.timeZone || tzData.timezone || tzData.time_zone);
+                    }
+                } catch (e) {
+                    console.log('Timezone lookup error:', e);
+                }
+                
+                // Method 2: Browser timezone fallback
+                if (!timeZoneId) {
+                    timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                }
+                
+                const localTime = new Intl.DateTimeFormat('en-US', {
+                    timeZone: timeZoneId,
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true
-                });
+                }).format(sunriseUTC);
+                
+                console.log('🌅 Sunrise time:', localTime, 'for coordinates:', lat, lng);
                 return localTime;
             }
         } catch (error) {
             console.log('Sunrise API error:', error);
+            
+            // Fallback: Calculate approximate sunrise
+            try {
+                const approximateSunrise = calculateApproximateSunrise(lat, lng);
+                console.log('🌅 Using approximate sunrise:', approximateSunrise);
+                return approximateSunrise;
+            } catch (e) {
+                console.log('Approximate sunrise calculation failed:', e);
+            }
         }
         
-        // Fallback to a default sunrise time
+        // Final fallback
         return '6:30 AM';
+    }
+
+    // Approximate sunrise calculation as backup
+    function calculateApproximateSunrise(lat, lng) {
+        const now = new Date();
+        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+        
+        // Simplified sunrise calculation based on latitude and day of year
+        const latRad = lat * Math.PI / 180;
+        const declination = 23.45 * Math.sin((284 + dayOfYear) * Math.PI / 180);
+        const hourAngle = Math.acos(-Math.tan(latRad) * Math.tan(declination * Math.PI / 180));
+        const sunriseHour = 12 - (hourAngle * 12 / Math.PI);
+        
+        const hours = Math.floor(sunriseHour);
+        const minutes = Math.floor((sunriseHour - hours) * 60);
+        
+        const time = new Date();
+        time.setHours(hours, minutes, 0, 0);
+        
+        return time.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
     }
 
     // Get coordinates from address using geocoding API
@@ -430,6 +508,7 @@
             
             // Update only the changing elements
             updatePrayerTimes(widget, newPrayerTimes);
+            updatePrayerTimesHeading(widget);
             updateCurrentPrayerHighlight(widget, newPrayerStatus);
             updateNextPrayerStatus(widget, newPrayerStatus);
             
@@ -458,6 +537,21 @@
         });
     }
     
+    // Update prayer times heading and description
+    function updatePrayerTimesHeading(widget) {
+        const currentConfig = window.IqamaWidgetConfig || CONFIG;
+        const heading = widget.querySelector('.prayer-times-heading');
+        const description = widget.querySelector('.prayer-times-description');
+        
+        if (heading) {
+            heading.textContent = currentConfig.timeType === 'athan' ? 'Athan Times' : 'Iqama Times';
+        }
+        
+        if (description) {
+            description.textContent = currentConfig.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called';
+        }
+    }
+    
     // Update current prayer highlight
     function updateCurrentPrayerHighlight(widget, prayerStatus) {
         // Remove old highlights
@@ -476,8 +570,10 @@
         if (prayerStatus.current) {
             const currentElement = widget.querySelector(`[data-prayer="${prayerStatus.current}"]`);
             if (currentElement) {
+                const currentConfig = window.IqamaWidgetConfig || CONFIG;
                 currentElement.style.background = 'rgba(255, 255, 255, 0.1)';
-                currentElement.style.borderColor = CONFIG.accentColor;
+                const textColor = getContrastingTextColor(currentConfig.backgroundColor);
+                currentElement.style.borderColor = textColor;
                 
                 // Ensure text styling matches CSS rules exactly
                 const textElements = currentElement.querySelectorAll('div');
@@ -532,6 +628,61 @@
         }
     }
 
+    // Helper function to determine if text should be white or black based on background
+function getContrastingTextColor(backgroundColor) {
+    // Convert hex to RGB
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate brightness using luminance formula
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // Return white for dark backgrounds, black for light backgrounds
+    return brightness < 128 ? '#ffffff' : '#000000';
+}
+
+// Helper function to create glassmorphism background
+function createGlassmorphism(backgroundColor, accentColor) {
+    // Convert hex to RGB for transparency
+    const hexToRgb = (hex) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    };
+    
+    const bgRgb = hexToRgb(backgroundColor);
+    if (!bgRgb) return backgroundColor;
+    
+    // Determine if background is light or dark for appropriate transparency
+    const brightness = (bgRgb.r * 299 + bgRgb.g * 587 + bgRgb.b * 114) / 1000;
+    const isLight = brightness > 128;
+    
+    // Create glassmorphism effect with backdrop blur and transparency
+    if (isLight) {
+        // Light background: subtle dark transparency
+        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.85)`;
+    } else {
+        // Dark background: subtle light transparency
+        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.9)`;
+    }
+}
+
+// Helper function to get appropriate card colors based on background
+function getCardColors(backgroundColor) {
+    const isDark = getContrastingTextColor(backgroundColor) === '#ffffff';
+    return {
+        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
+    };
+}
+
     // Create and inject the widget
     async function createWidget() {
         const iqamaTimes = await getPrayerTimesForToday();
@@ -541,6 +692,17 @@
         const isCurrentPrayer = prayerStatus.status === 'current';
         const statusText = isCurrentPrayer ? 'Current Prayer' : 'Next Prayer';
         const nextPrayerTime = prayerStatus.nextTime;
+        
+        // Get the current configuration (use window.IqamaWidgetConfig directly)
+        const currentConfig = window.IqamaWidgetConfig || CONFIG;
+        console.log('🔧 Widget using config:', currentConfig);
+        console.log('🔧 Jumuah count in config:', currentConfig.jumuahCount);
+        
+        // Determine text color based on background brightness
+        const textColor = getContrastingTextColor(currentConfig.backgroundColor);
+        
+        // Get card colors for consistent styling
+        const cardColors = getCardColors(currentConfig.backgroundColor);
         
         // Get date info for next-day prayers
         const currentDate = new Date();
@@ -566,19 +728,21 @@
         
         const widgetHTML = `
             <div id="iqama-widget" style="
-                background: ${CONFIG.backgroundColor};
-                color: ${CONFIG.accentColor};
-                border-radius: ${CONFIG.borderRadius};
+                background: ${createGlassmorphism(currentConfig.backgroundColor, currentConfig.accentColor)};
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                color: ${textColor};
+                border-radius: ${currentConfig.borderRadius};
                 padding: 32px;
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+                border: 1px solid ${cardColors.border};
                 max-width: 600px;
                 width: 100%;
                 margin: 0 auto;
                 position: relative;
-                --background-color: ${CONFIG.backgroundColor};
-                --accent-color: ${CONFIG.accentColor};
+                --background-color: ${currentConfig.backgroundColor};
+                --accent-color: ${textColor};
                 --space-xs: 4px;
                 --space-sm: 8px;
                 --space-md: 16px;
@@ -597,23 +761,23 @@
                     margin-bottom: 32px;
                 ">
                     <div class="widget-title" style="
-                        color: ${CONFIG.accentColor};
+                        color: ${textColor};
                         font-size: 24px;
                         font-weight: 700;
                         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                         letter-spacing: -0.02em;
                         line-height: 1.2;
                         margin-bottom: 8px;
-                    ">${CONFIG.title}</div>
+                    ">${currentConfig.title}</div>
                     <div class="widget-location" style="
-                        color: ${CONFIG.accentColor};
+                        color: ${textColor};
                         font-size: 18px;
                         font-weight: 500;
                         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                         letter-spacing: -0.01em;
                         line-height: 1.3;
                         opacity: 0.9;
-                    ">${CONFIG.location}</div>
+                    ">${currentConfig.location}</div>
                 </div>
                 
                 <div style="
@@ -621,6 +785,44 @@
                     position: relative;
                     z-index: 2;
                 ">
+                    <!-- Dynamic Prayer Times Heading -->
+                    <div style="
+                        text-align: center;
+                        margin-bottom: 24px;
+                    ">
+                        <h2 class="prayer-times-heading" style="
+                            color: ${textColor};
+                            font-size: 20px;
+                            font-weight: 600;
+                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            letter-spacing: -0.01em;
+                            line-height: 1.3;
+                            margin-bottom: 12px;
+                        ">${currentConfig.timeType === 'athan' ? 'Athan Times' : 'Iqama Times'}</h2>
+                        
+                        <!-- Description Card -->
+                        <div class="prayer-times-description-card" style="
+                            background: ${cardColors.background};
+                            border: 1px solid ${cardColors.border};
+                            border-radius: 12px;
+                            padding: 12px 16px;
+                            margin: 0 auto;
+                            max-width: 400px;
+                        ">
+                            <p class="prayer-times-description" style="
+                                color: ${textColor};
+                                font-size: 14px;
+                                font-weight: 400;
+                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                letter-spacing: -0.01em;
+                                line-height: 1.4;
+                                opacity: 0.9;
+                                margin: 0;
+                                text-align: center;
+                            ">${currentConfig.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called'}</p>
+                        </div>
+                    </div>
+                    
                     <div class="prayer-grid" 
                          role="list" 
                          aria-label="Daily Prayer Times"
@@ -1106,14 +1308,14 @@
                         </style>
                         
                         <div class="prayer-item" role="listitem" data-prayer="fajr" style="
-                            background: ${currentPrayer === 'fajr' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
-                            border: 2px solid ${currentPrayer === 'fajr' ? CONFIG.accentColor : 'transparent'};
+                            background: ${currentPrayer === 'fajr' ? cardColors.backgroundActive : cardColors.background};
+                            border: 2px solid ${currentPrayer === 'fajr' ? textColor : cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
                         ">
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 14px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1126,7 +1328,7 @@
                             ">Fajr</div>
                             
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1156,14 +1358,14 @@
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="sunrise" style="
-                            background: ${currentPrayer === 'sunrise' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
-                            border: 2px solid ${currentPrayer === 'sunrise' ? CONFIG.accentColor : 'transparent'};
+                            background: ${currentPrayer === 'sunrise' ? cardColors.backgroundActive : cardColors.background};
+                            border: 2px solid ${currentPrayer === 'sunrise' ? textColor : cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
                         ">
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 14px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1176,7 +1378,7 @@
                             ">Sunrise</div>
                             
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1206,14 +1408,14 @@
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="dhuhr" style="
-                            background: ${currentPrayer === 'dhuhr' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
-                            border: 2px solid ${currentPrayer === 'dhuhr' ? CONFIG.accentColor : 'transparent'};
+                            background: ${currentPrayer === 'dhuhr' ? cardColors.backgroundActive : cardColors.background};
+                            border: 2px solid ${currentPrayer === 'dhuhr' ? textColor : cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
                         ">
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 14px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1226,7 +1428,7 @@
                             ">Dhuhr</div>
                             
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1256,14 +1458,14 @@
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="asr" style="
-                            background: ${currentPrayer === 'asr' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
-                            border: 2px solid ${currentPrayer === 'asr' ? CONFIG.accentColor : 'transparent'};
+                            background: ${currentPrayer === 'asr' ? cardColors.backgroundActive : cardColors.background};
+                            border: 2px solid ${currentPrayer === 'asr' ? textColor : cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
                         ">
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 14px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1276,7 +1478,7 @@
                             ">Asr</div>
                             
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1306,14 +1508,14 @@
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="maghrib" style="
-                            background: ${currentPrayer === 'maghrib' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
-                            border: 2px solid ${currentPrayer === 'maghrib' ? CONFIG.accentColor : 'transparent'};
+                            background: ${currentPrayer === 'maghrib' ? cardColors.backgroundActive : cardColors.background};
+                            border: 2px solid ${currentPrayer === 'maghrib' ? textColor : cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
                         ">
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 14px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1326,7 +1528,7 @@
                             ">Maghrib</div>
                             
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1356,14 +1558,14 @@
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="isha" style="
-                            background: ${currentPrayer === 'isha' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
-                            border: 2px solid ${currentPrayer === 'isha' ? CONFIG.accentColor : 'transparent'};
+                            background: ${currentPrayer === 'isha' ? cardColors.backgroundActive : cardColors.background};
+                            border: 2px solid ${currentPrayer === 'isha' ? textColor : cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
                         ">
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 14px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1376,7 +1578,7 @@
                             ">Isha</div>
                             
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 700;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1415,38 +1617,51 @@
                         border: 1px solid rgba(255, 255, 255, 0.1);
                     ">
                         <div class="time-explanation" style="
-                            color: ${CONFIG.accentColor};
+                            color: ${textColor};
                             font-size: 14px;
                             font-weight: 500;
                             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                             letter-spacing: -0.01em;
                             line-height: 1.4;
                             opacity: 0.8;
-                        ">${CONFIG.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called'}</div>
+                        ">${currentConfig.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called'}</div>
                     </div>
                     
                     <div class="jumuah-section" style="
                         text-align: center;
                         margin: 16px 0;
                         padding: 16px;
-                        background: rgba(255, 255, 255, 0.08);
+                        background: ${cardColors.background};
                         border-radius: 16px;
-                        border: 2px solid rgba(255, 255, 255, 0.15);
+                        border: 2px solid ${cardColors.border};
                         overflow: hidden;
                         box-sizing: border-box;
                     ">
-                        ${CONFIG.jumuahCount === 1 ? `
+                        ${(() => {
+                            console.log('🔧 Creating Jumuah section with count:', currentConfig.jumuahCount);
+                            console.log('🔧 Current config in Jumuah section:', currentConfig);
+                            return currentConfig.jumuahCount === 1;
+                        })() ? `
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 18px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 letter-spacing: -0.01em;
                                 line-height: 1.4;
-                            ">Jumuah Prayer: ${iqamaTimes.jumuah1}</div>
+                                margin-bottom: 8px;
+                            ">Jumuah Prayer</div>
+                            <div style="
+                                color: ${textColor};
+                                font-size: 16px;
+                                font-weight: 500;
+                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                letter-spacing: -0.01em;
+                                line-height: 1.4;
+                            ">${iqamaTimes.jumuah1}</div>
                         ` : `
                             <div style="
-                                color: ${CONFIG.accentColor};
+                                color: ${textColor};
                                 font-size: 16px;
                                 font-weight: 600;
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1464,12 +1679,15 @@
                                 box-sizing: border-box;
                                 overflow: hidden;
                             ">
-                                ${[1, 2, 3].slice(0, CONFIG.jumuahCount).map(num => `
+                                ${[1, 2, 3].slice(0, (() => {
+                                    console.log('🔧 Multiple Jumuah section - count:', currentConfig.jumuahCount);
+                                    return currentConfig.jumuahCount;
+                                })()).map(num => `
                                     <div style="
                                         padding: 8px 6px;
-                                        background: rgba(255, 255, 255, 0.1);
+                                        background: ${cardColors.backgroundActive};
                                         border-radius: 8px;
-                                        border: 1px solid rgba(255, 255, 255, 0.2);
+                                        border: 1px solid ${cardColors.borderActive};
                                         min-width: 0;
                                         box-sizing: border-box;
                                         overflow: hidden;
@@ -1479,9 +1697,9 @@
                                             font-size: 12px;
                                             font-weight: 500;
                                             margin-bottom: 6px;
-                                        ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} Jumuah</div>
+                                        ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} Jumuah Prayer</div>
                                         <div style="
-                                            color: ${CONFIG.accentColor};
+                                            color: ${textColor};
                                             font-size: 14px;
                                             font-weight: 600;
                                         ">${iqamaTimes[`jumuah${num}`] || '1:30 PM'}</div>
@@ -1499,12 +1717,12 @@
                         justify-content: center;
                         align-items: center;
                     ">
-                        <a href="${CONFIG.googleSheetUrl}" 
+                        <a href="${currentConfig.googleSheetUrl}" 
                            target="_blank"
                            style="
                                 display: inline-block;
-                                background: ${CONFIG.accentColor};
-                                color: ${CONFIG.backgroundColor};
+                                background: ${currentConfig.accentColor};
+                                color: ${getContrastingTextColor(currentConfig.accentColor)};
                                 padding: 16px 24px;
                                 border-radius: 16px;
                                 text-decoration: none;
@@ -1513,7 +1731,7 @@
                                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                 letter-spacing: 0.5px;
                                 text-transform: uppercase;
-                                border: 2px solid ${CONFIG.accentColor};
+                                border: 2px solid ${currentConfig.accentColor};
                                 transition: all 0.3s ease;
                                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                                 text-align: center;
