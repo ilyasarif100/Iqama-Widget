@@ -631,14 +631,28 @@ document.addEventListener('DOMContentLoaded', function() {
             previewContainer.innerHTML = '';
         }
         
-        // Create the widget
-        window.createWidget().then(() => {
-            // Move the widget to the preview container if it exists
-            const widget = document.getElementById('iqama-widget');
-            if (widget && previewContainer) {
-                previewContainer.appendChild(widget);
-            }
-        });
+        // Create the widget with fresh data
+        if (window.fetchPrayerTimes) {
+            // Force fresh fetch before creating widget
+            window.fetchPrayerTimes().then(() => {
+                window.createWidget().then(() => {
+                    // Move the widget to the preview container if it exists
+                    const widget = document.getElementById('iqama-widget');
+                    if (widget && previewContainer) {
+                        previewContainer.appendChild(widget);
+                    }
+                });
+            });
+        } else {
+            // Fallback to regular widget creation
+            window.createWidget().then(() => {
+                // Move the widget to the preview container if it exists
+                const widget = document.getElementById('iqama-widget');
+                if (widget && previewContainer) {
+                    previewContainer.appendChild(widget);
+                }
+            });
+        }
     }
     
     // Update generated code

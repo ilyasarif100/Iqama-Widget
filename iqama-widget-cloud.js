@@ -167,7 +167,6 @@
             if (prayerTimesData.length > 0) {
                 console.log('📅 Today\'s prayer times:', await getPrayerTimesForToday());
             }
-            await createWidget();
         } catch (error) {
             console.error('Error fetching prayer times:', error);
             console.log('Using fallback times...');
@@ -185,7 +184,6 @@
                 maghrib: "7:15 PM",
                 isha: "8:45 PM"
             }];
-            await createWidget();
         }
     }
     
@@ -481,18 +479,32 @@
                 currentElement.style.background = 'rgba(255, 255, 255, 0.1)';
                 currentElement.style.borderColor = CONFIG.accentColor;
                 
+                // Ensure text styling matches CSS rules exactly
+                const textElements = currentElement.querySelectorAll('div');
+                textElements.forEach((textElement, index) => {
+                    // Remove any inline styles that might override CSS
+                    textElement.style.removeProperty('font-size');
+                    textElement.style.removeProperty('font-weight');
+                    textElement.style.removeProperty('color');
+                    textElement.style.removeProperty('opacity');
+                });
+                
                 // Add live indicator
                 const liveIndicator = document.createElement('div');
                 liveIndicator.style.cssText = `
                     position: absolute;
                     top: 4px;
                     right: 4px;
-                        width: 4px;
-                        height: 4px;
-                        background: #10B981;
-                        border-radius: 50%;
-                        border: 0.5px solid white;
-                        animation: pulse 2s infinite;
+                    width: 6px;
+                    height: 6px;
+                    background: #10B981;
+                    border-radius: 50%;
+                    border: 0.5px solid white;
+                    animation: pulse 2s infinite;
+                    min-width: 6px;
+                    min-height: 6px;
+                    max-width: 6px;
+                    max-height: 6px;
                 `;
                 currentElement.appendChild(liveIndicator);
             }
@@ -689,7 +701,7 @@
                             /* Mobile-first responsive design */
                             .prayer-grid {
                                 display: grid !important;
-                                grid-template-columns: repeat(2, 1fr) !important;
+                                grid-template-columns: repeat(1, 1fr) !important;
                                 gap: 10px !important;
                                 padding: 0 6px !important;
                                 justify-items: center !important;
@@ -703,8 +715,8 @@
                             }
                             
                             .prayer-item {
-                                padding: 10px 6px !important;
-                                min-height: 65px !important;
+                                padding: 16px 12px !important;
+                                min-height: 80px !important;
                                 width: 100% !important;
                                 max-width: 100% !important;
                                 box-sizing: border-box !important;
@@ -718,8 +730,8 @@
                             }
                             
                             .prayer-item div:first-child {
-                                font-size: 11px !important;
-                                margin-bottom: 5px !important;
+                                font-size: 16px !important;
+                                margin-bottom: 8px !important;
                                 text-align: center !important;
                                 width: 100% !important;
                                 display: flex !important;
@@ -729,7 +741,7 @@
                             }
                             
                             .prayer-item div:last-child {
-                                font-size: 15px !important;
+                                font-size: 20px !important;
                                 text-align: center !important;
                                 width: 100% !important;
                                 display: flex !important;
@@ -752,12 +764,12 @@
                                     margin-right: auto !important;
                                     justify-content: center !important;
                                     display: grid !important;
-                                    grid-template-columns: repeat(2, 1fr) !important;
+                                    grid-template-columns: repeat(1, 1fr) !important;
                                 }
                                 
                                 .prayer-item {
-                                    padding: 12px 8px !important;
-                                    min-height: 70px !important;
+                                    padding: 20px 16px !important;
+                                    min-height: 90px !important;
                                     justify-content: center !important;
                                     align-items: center !important;
                                     text-align: center !important;
@@ -770,7 +782,7 @@
                                 }
                                 
                                 .prayer-item div:first-child {
-                                    font-size: 12px !important;
+                                    font-size: 18px !important;
                                     text-align: center !important;
                                     display: flex !important;
                                     justify-content: center !important;
@@ -779,7 +791,7 @@
                                 }
                                 
                                 .prayer-item div:last-child {
-                                    font-size: 16px !important;
+                                    font-size: 22px !important;
                                     text-align: center !important;
                                     display: flex !important;
                                     justify-content: center !important;
@@ -801,12 +813,12 @@
                                     margin-right: auto !important;
                                     justify-content: center !important;
                                     display: grid !important;
-                                    grid-template-columns: repeat(2, 1fr) !important;
+                                    grid-template-columns: repeat(1, 1fr) !important;
                                 }
                                 
                                 .prayer-item {
-                                    padding: 14px 10px !important;
-                                    min-height: 75px !important;
+                                    padding: 24px 20px !important;
+                                    min-height: 100px !important;
                                     justify-content: center !important;
                                     align-items: center !important;
                                     text-align: center !important;
@@ -819,7 +831,7 @@
                                 }
                                 
                                 .prayer-item div:first-child {
-                                    font-size: 13px !important;
+                                    font-size: 20px !important;
                                     text-align: center !important;
                                     display: flex !important;
                                     justify-content: center !important;
@@ -828,7 +840,7 @@
                                 }
                                 
                                 .prayer-item div:last-child {
-                                    font-size: 17px !important;
+                                    font-size: 24px !important;
                                     text-align: center !important;
                                     display: flex !important;
                                     justify-content: center !important;
@@ -1075,6 +1087,22 @@
                                     padding: 0 10px !important;
                                 }
                             }
+                            
+                            /* Pulse animation for live indicator */
+                            @keyframes pulse {
+                                0% {
+                                    opacity: 1;
+                                    transform: scale(1);
+                                }
+                                50% {
+                                    opacity: 0.7;
+                                    transform: scale(1.2);
+                                }
+                                100% {
+                                    opacity: 1;
+                                    transform: scale(1);
+                                }
+                            }
                         </style>
                         
                         <div class="prayer-item" role="listitem" data-prayer="fajr" style="
@@ -1113,12 +1141,16 @@
                                     position: absolute;
                                     top: 4px;
                                     right: 4px;
-                                    width: 4px;
-                                    height: 4px;
+                                    width: 6px;
+                                    height: 6px;
                                     background: #10B981;
                                     border-radius: 50%;
                                     border: 0.5px solid white;
                                     animation: pulse 2s infinite;
+                                    min-width: 6px;
+                                    min-height: 6px;
+                                    max-width: 6px;
+                                    max-height: 6px;
                                 "></div>
                             ` : ''}
                         </div>
@@ -1159,12 +1191,16 @@
                                     position: absolute;
                                     top: 4px;
                                     right: 4px;
-                                    width: 4px;
-                                    height: 4px;
+                                    width: 6px;
+                                    height: 6px;
                                     background: #10B981;
                                     border-radius: 50%;
                                     border: 0.5px solid white;
                                     animation: pulse 2s infinite;
+                                    min-width: 6px;
+                                    min-height: 6px;
+                                    max-width: 6px;
+                                    max-height: 6px;
                                 "></div>
                             ` : ''}
                         </div>
@@ -1205,12 +1241,16 @@
                                     position: absolute;
                                     top: 4px;
                                     right: 4px;
-                                    width: 4px;
-                                    height: 4px;
+                                    width: 6px;
+                                    height: 6px;
                                     background: #10B981;
                                     border-radius: 50%;
                                     border: 0.5px solid white;
                                     animation: pulse 2s infinite;
+                                    min-width: 6px;
+                                    min-height: 6px;
+                                    max-width: 6px;
+                                    max-height: 6px;
                                 "></div>
                             ` : ''}
                         </div>
@@ -1251,12 +1291,16 @@
                                     position: absolute;
                                     top: 4px;
                                     right: 4px;
-                                    width: 4px;
-                                    height: 4px;
+                                    width: 6px;
+                                    height: 6px;
                                     background: #10B981;
                                     border-radius: 50%;
                                     border: 0.5px solid white;
                                     animation: pulse 2s infinite;
+                                    min-width: 6px;
+                                    min-height: 6px;
+                                    max-width: 6px;
+                                    max-height: 6px;
                                 "></div>
                             ` : ''}
                         </div>
@@ -1297,12 +1341,16 @@
                                     position: absolute;
                                     top: 4px;
                                     right: 4px;
-                                    width: 4px;
-                                    height: 4px;
+                                    width: 6px;
+                                    height: 6px;
                                     background: #10B981;
                                     border-radius: 50%;
                                     border: 0.5px solid white;
                                     animation: pulse 2s infinite;
+                                    min-width: 6px;
+                                    min-height: 6px;
+                                    max-width: 6px;
+                                    max-height: 6px;
                                 "></div>
                             ` : ''}
                         </div>
@@ -1343,12 +1391,16 @@
                                     position: absolute;
                                     top: 4px;
                                     right: 4px;
-                                    width: 4px;
-                                    height: 4px;
+                                    width: 6px;
+                                    height: 6px;
                                     background: #10B981;
                                     border-radius: 50%;
                                     border: 0.5px solid white;
                                     animation: pulse 2s infinite;
+                                    min-width: 6px;
+                                    min-height: 6px;
+                                    max-width: 6px;
+                                    max-height: 6px;
                                 "></div>
                             ` : ''}
                         </div>
@@ -1442,7 +1494,10 @@
                     <div style="
                         text-align: center;
                         margin-top: 32px;
-                        padding: 24px;
+                        padding: 0 8px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
                     ">
                         <a href="${CONFIG.googleSheetUrl}" 
                            target="_blank"
@@ -1461,6 +1516,7 @@
                                 border: 2px solid ${CONFIG.accentColor};
                                 transition: all 0.3s ease;
                                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                text-align: center;
                            "
                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)'"
                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.15)'"
@@ -1543,15 +1599,31 @@
     }
 
     // Initialize the widget by fetching data first
-    fetchPrayerTimes();
-    
-    // Only auto-create widget if not in demo mode
-    if (!document.getElementById('widget-preview')) {
-        console.log('🚀 Auto-creating widget (not in demo mode)');
-        createWidget();
-    } else {
-        console.log('🎭 Demo mode detected, widget will be created manually');
+    async function initializeWidget() {
+        try {
+            console.log('🔄 Initializing widget...');
+            await fetchPrayerTimes();
+            console.log('✅ Prayer times fetched successfully');
+            
+            // Only auto-create widget if not in demo mode
+            if (!document.getElementById('widget-preview')) {
+                console.log('🚀 Auto-creating widget (not in demo mode)');
+                createWidget();
+            } else {
+                console.log('🎭 Demo mode detected, widget will be created manually');
+            }
+        } catch (error) {
+            console.error('❌ Widget initialization failed:', error);
+            // Still try to create widget with fallback data
+            if (!document.getElementById('widget-preview')) {
+                console.log('🚀 Creating widget with fallback data');
+                createWidget();
+            }
+        }
     }
+    
+    // Start initialization
+    initializeWidget();
     
     // Expose functions for interactive demo
     window.refreshWidget = async () => {
@@ -1570,4 +1642,5 @@
     };
     
     window.createWidget = createWidget;
+    window.fetchPrayerTimes = fetchPrayerTimes;
 })();
