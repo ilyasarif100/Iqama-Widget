@@ -1526,6 +1526,23 @@ function getCardColors(backgroundColor) {
         try {
             console.log('🔄 Initializing widget with speed optimizations...');
             
+            // Show loading spinner immediately
+            const container = document.getElementById('iqama-widget-container');
+            if (container && !document.getElementById('widget-preview')) {
+                container.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">
+                        <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid ${CONFIG.accentColor || '#1a1a1a'}; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+                        <p style="text-align: center; color: #666; font-size: 16px; margin: 0; font-family: Arial, sans-serif;">Loading prayer times...</p>
+                    </div>
+                    <style>
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                `;
+            }
+            
             // Check for speed optimization flags
             const skipTimezoneAPI = CONFIG.skipTimezoneAPI || CONFIG.skipAllAPIs;
             const skipSunriseAPI = CONFIG.skipSunriseAPI || CONFIG.skipAllAPIs;

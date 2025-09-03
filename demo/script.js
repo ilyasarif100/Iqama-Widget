@@ -404,7 +404,10 @@ window.IqamaWidgetConfig = {
     accentColor: '${config.accentColor || '#ffffff'}',
     borderRadius: '20px',
     timeType: '${config.timeType || 'athan'}',
-    jumuahCount: ${config.jumuahCount || 1}
+    jumuahCount: ${config.jumuahCount || 1},
+    // Speed optimizations
+    skipSunriseAPI: true,
+    fallbackSunrise: '6:01 AM'
 };
 
 // Load the widget script

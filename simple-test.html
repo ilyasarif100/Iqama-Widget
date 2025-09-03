@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Widget Test</title>
+</head>
+<body>
+    <h1>Simple Widget Test</h1>
+    <div id="iqama-widget-container" style="border: 2px solid red; padding: 20px; margin: 20px;">
+        <p>Widget should appear here...</p>
+    </div>
+    
+    <div id="status" style="background: #f0f0f0; padding: 10px; margin: 20px;">
+        Status: Loading...
+    </div>
+
+    <script>
+        console.log('🚀 Starting simple test...');
+        
+        // Set configuration
+        window.IqamaWidgetConfig = {
+            googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
+            title: 'Test Masjid',
+            location: 'Phoenix, United States',
+            backgroundColor: '#1a1a1a',
+            accentColor: '#ffffff',
+            timeType: 'athan',
+            jumuahCount: 1
+        };
+        
+        console.log('✅ Config set:', window.IqamaWidgetConfig);
+        document.getElementById('status').innerHTML = 'Status: Config set, loading script...';
+        
+        // Load script
+        const script = document.createElement('script');
+        script.src = 'https://ilyasarif100.github.io/Iqama-Widget/iqama-widget-cloud.js';
+        
+        script.onload = function() {
+            console.log('✅ Script loaded');
+            document.getElementById('status').innerHTML = 'Status: Script loaded, checking functions...';
+            
+            if (window.createWidget) {
+                console.log('✅ createWidget found');
+                document.getElementById('status').innerHTML = 'Status: Creating widget...';
+                
+                window.createWidget().then(() => {
+                    console.log('✅ Widget created');
+                    document.getElementById('status').innerHTML = 'Status: Widget created successfully!';
+                    
+                    // Move the widget to our container
+                    const widget = document.getElementById('iqama-widget');
+                    const container = document.getElementById('iqama-widget-container');
+                    if (widget && container) {
+                        container.innerHTML = '';
+                        container.appendChild(widget);
+                        console.log('✅ Widget moved to container');
+                        document.getElementById('status').innerHTML = 'Status: Widget moved to container!';
+                    }
+                }).catch(error => {
+                    console.error('❌ Widget creation failed:', error);
+                    document.getElementById('status').innerHTML = 'Status: Error - ' + error.message;
+                });
+            } else {
+                console.log('❌ createWidget not found');
+                document.getElementById('status').innerHTML = 'Status: createWidget function not found';
+            }
+        };
+        
+        script.onerror = function() {
+            console.error('❌ Script failed to load');
+            document.getElementById('status').innerHTML = 'Status: Script failed to load';
+        };
+        
+        document.head.appendChild(script);
+        console.log('📥 Script tag added');
+    </script>
+</body>
+</html>
