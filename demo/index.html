@@ -84,27 +84,18 @@
             <div class="demo-container">
                 <div class="demo-preview">
                     <h3>Live Preview</h3>
-                    
-                    <!-- Responsive Testing Toolbar -->
-                    <div class="responsive-toolbar">
-                        <div class="toolbar-label">Test Different Screen Sizes:</div>
-                        <div class="screen-size-buttons">
-                            <button class="screen-btn active" data-width="360" data-label="Mobile (360px)">360px</button>
-                            <button class="screen-btn" data-width="390" data-label="Mobile (390px)">390px</button>
-                            <button class="screen-btn" data-width="768" data-label="Tablet (768px)">768px</button>
-                            <button class="screen-btn" data-width="810" data-label="Tablet (810px)">810px</button>
-                            <button class="screen-btn" data-width="1366" data-label="Desktop (1366px)">1366px</button>
-                            <button class="screen-btn" data-width="1920" data-label="Desktop (1920px)">1920px</button>
-                            <button class="screen-btn" data-width="100" data-label="Full Width">Full Width</button>
-                        </div>
-                    </div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                        Resize your browser window to test the widget's responsiveness
+                    </p>
                     
                     <div id="widget-preview">
                         <!-- Widget will be loaded here -->
                     </div>
                 </div>
                 
-                <div class="controls">
+                <div class="controls-section">
+                    <h2 class="section-title">Configuration</h2>
+                    <div class="controls">
                     <div class="control-group">
                         <h3>📝 Basic Settings</h3>
                         <div class="form-row">
@@ -135,8 +126,8 @@
                                 <div class="scheme-preview" style="background: #1a1a1a; border-color: #ffffff;"></div>
                                 <span>Dark</span>
                             </div>
-                            <div class="scheme-option" data-background="#ffffff" data-accent="#1a1a1a" onclick="selectColorScheme(this)">
-                                <div class="scheme-preview" style="background: #ffffff; border-color: #1a1a1a;"></div>
+                            <div class="scheme-option" data-background="#ffffff" data-accent="#000000" onclick="selectColorScheme(this)">
+                                <div class="scheme-preview" style="background: #ffffff; border-color: #000000;"></div>
                                 <span>Light</span>
                             </div>
                             <div class="scheme-option" data-background="#0f172a" data-accent="#60a5fa" onclick="selectColorScheme(this)">
@@ -193,6 +184,7 @@
                     <div class="buttons">
                         <button class="btn-demo btn-demo-primary" onclick="updateWidget()">Update Widget</button>
                         <button class="btn-demo btn-demo-secondary" onclick="copyConfig()">Copy Code</button>
+                    </div>
                     </div>
                 </div>
             </div>

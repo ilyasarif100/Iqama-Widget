@@ -3,153 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Widget Test</title>
+    <title>Iqama Widget Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            min-height: 100vh;
         }
-        .test-container {
+        .container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
         }
         .widget-container {
-            border: 2px dashed #ccc;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
             padding: 20px;
             margin: 20px 0;
-            min-height: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .debug-info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
+        .status {
+            color: white;
+            text-align: center;
             margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        .config-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+        }
+        .config-info h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+        .config-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
             font-family: monospace;
-            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="test-container">
-        <h1>🕌 Widget Test Page</h1>
-        <p>This page tests if the widget loads correctly when embedded.</p>
+    <div class="container">
+        <h1>🕌 Iqama Widget Test</h1>
         
-        <div class="debug-info">
-            <strong>Debug Info:</strong><br>
-            <div id="debug-status">Checking widget status...</div>
+        <div class="status" id="status">
+            Loading widget...
         </div>
         
-        <h2>Widget Container:</h2>
         <div class="widget-container">
             <div id="iqama-widget-container">
-                <p style="color: #666; text-align: center;">Widget should appear here...</p>
+                <p style="color: rgba(255,255,255,0.7); text-align: center;">Widget will appear here...</p>
             </div>
         </div>
         
-        <h2>Console Logs:</h2>
-        <div class="debug-info">
-            <div id="console-logs">Waiting for logs...</div>
+        <div class="config-info">
+            <h3>📋 Widget Configuration</h3>
+            <p><strong>Title:</strong> <code>Islamic Community Center of Phoenix</code></p>
+            <p><strong>Location:</strong> <code>Phoenix, United States</code></p>
+            <p><strong>Time Type:</strong> <code>Iqama Times</code></p>
+            <p><strong>Jumuah Count:</strong> <code>1</code></p>
+            <p><strong>Performance:</strong> <code>Optimized (caching enabled)</code></p>
+        </div>
+        
+        <div class="config-info">
+            <h3>⚡ Performance Features</h3>
+            <ul style="color: white;">
+                <li>✅ <strong>Instant Loading:</strong> Widget appears immediately with fallback data</li>
+                <li>✅ <strong>Smart Caching:</strong> Prayer times cached for 5 minutes</li>
+                <li>✅ <strong>No Sunrise APIs:</strong> Simplified for maximum speed</li>
+                <li>✅ <strong>Background Updates:</strong> Fresh data loads without blocking UI</li>
+                <li>✅ <strong>Responsive Design:</strong> Works on all screen sizes</li>
+            </ul>
         </div>
     </div>
 
     <script>
-        // Debug logging
-        const debugStatus = document.getElementById('debug-status');
-        const consoleLogs = document.getElementById('console-logs');
+        console.log('🚀 Starting widget test...');
         
-        function log(message) {
-            console.log(message);
-            const timestamp = new Date().toLocaleTimeString();
-            consoleLogs.innerHTML += `[${timestamp}] ${message}<br>`;
-        }
-        
+        // Update status
         function updateStatus(message) {
-            debugStatus.innerHTML = message;
+            document.getElementById('status').innerHTML = message;
         }
-        
-        // Test the widget configuration
-        log('🚀 Starting widget test...');
-        updateStatus('Setting up widget configuration...');
         
         // Widget configuration
         window.IqamaWidgetConfig = {
             googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
             title: 'Islamic Community Center of Phoenix',
             location: 'Phoenix, United States',
-            masjidAddress: 'Phoenix, United States',
             backgroundColor: '#1a1a1a',
             accentColor: '#ffffff',
             borderRadius: '20px',
             timeType: 'iqama',
-            jumuahCount: 1
+            jumuahCount: 1,
+            skipAllAPIs: false  // Use caching for optimal performance
         };
         
-        log('✅ Widget config set:', window.IqamaWidgetConfig);
-        updateStatus('Loading widget script...');
+        console.log('✅ Widget config set:', window.IqamaWidgetConfig);
+        updateStatus('Configuration set, loading widget script...');
         
         // Load the widget script
         const script = document.createElement('script');
-        script.src = 'https://ilyasarif100.github.io/Iqama-Widget/iqama-widget-cloud.js';
+        script.src = './iqama-widget-cloud.js';
         
         script.onload = function() {
-            log('✅ Widget script loaded successfully');
-            updateStatus('Widget script loaded, checking for createWidget function...');
+            console.log('✅ Widget script loaded successfully');
+            updateStatus('Script loaded, creating widget...');
             
             // Check if the widget functions are available
             if (window.createWidget) {
-                log('✅ createWidget function found');
+                console.log('✅ createWidget function found');
                 updateStatus('Creating widget...');
                 
                 // Try to create the widget
                 try {
                     window.createWidget().then(() => {
-                        log('✅ Widget created successfully');
-                        updateStatus('Widget created successfully!');
+                        console.log('✅ Widget created successfully');
+                        updateStatus('✅ Widget loaded successfully!');
+                        
+                        // Move the widget to our container
+                        const widget = document.getElementById('iqama-widget');
+                        const container = document.getElementById('iqama-widget-container');
+                        if (widget && container) {
+                            container.innerHTML = '';
+                            container.appendChild(widget);
+                            console.log('✅ Widget moved to container');
+                        }
                     }).catch(error => {
-                        log('❌ Error creating widget:', error);
-                        updateStatus('Error creating widget: ' + error.message);
+                        console.error('❌ Error creating widget:', error);
+                        updateStatus('❌ Error creating widget: ' + error.message);
                     });
                 } catch (error) {
-                    log('❌ Error calling createWidget:', error);
-                    updateStatus('Error calling createWidget: ' + error.message);
+                    console.error('❌ Error calling createWidget:', error);
+                    updateStatus('❌ Error calling createWidget: ' + error.message);
                 }
             } else {
-                log('❌ createWidget function not found');
-                updateStatus('createWidget function not found in loaded script');
-                
-                // List available functions
-                const availableFunctions = Object.keys(window).filter(key => 
-                    typeof window[key] === 'function' && key.includes('Widget')
-                );
-                log('Available widget functions:', availableFunctions);
+                console.log('❌ createWidget function not found');
+                updateStatus('❌ createWidget function not found in loaded script');
             }
         };
         
         script.onerror = function() {
-            log('❌ Failed to load widget script');
-            updateStatus('Failed to load widget script');
+            console.error('❌ Failed to load widget script');
+            updateStatus('❌ Failed to load widget script');
         };
         
         // Add script to head
         document.head.appendChild(script);
-        log('📥 Script tag added to head');
+        console.log('📥 Script tag added to head');
         
         // Monitor for errors
         window.addEventListener('error', function(e) {
-            log('❌ Global error:', e.error);
+            console.error('❌ Global error:', e.error);
         });
         
         // Check if widget container gets populated
         const checkWidget = setInterval(() => {
             const container = document.getElementById('iqama-widget-container');
             if (container && container.children.length > 1) {
-                log('✅ Widget container populated with content');
-                updateStatus('Widget loaded and displayed!');
+                console.log('✅ Widget container populated with content');
+                updateStatus('✅ Widget loaded and displayed successfully!');
                 clearInterval(checkWidget);
             }
         }, 1000);
@@ -157,11 +187,11 @@
         // Timeout after 30 seconds
         setTimeout(() => {
             clearInterval(checkWidget);
-            if (debugStatus.innerHTML.includes('Widget loaded')) {
-                log('✅ Widget test completed successfully');
+            if (document.getElementById('status').innerHTML.includes('successfully')) {
+                console.log('✅ Widget test completed successfully');
             } else {
-                log('⏰ Widget test timed out after 30 seconds');
-                updateStatus('Widget test timed out - check console for errors');
+                console.log('⏰ Widget test timed out after 30 seconds');
+                updateStatus('⏰ Widget test timed out - check console for errors');
             }
         }, 30000);
     </script>

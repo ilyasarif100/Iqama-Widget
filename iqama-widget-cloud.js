@@ -23,7 +23,10 @@
         
         // Widget Configuration
         timeType: 'athan',
-        jumuahCount: 1
+        jumuahCount: 1,
+        
+        // Performance Optimization Flags (set to true for maximum speed)
+        skipAllAPIs: false           // Set to true to skip all external API calls
     };
     
     // Extract Sheet ID from Google Sheet URL
@@ -62,16 +65,43 @@
     let prayerTimesData = [];
     
     // ========================================
+    // PERFORMANCE OPTIMIZATION CACHE
+    // ========================================
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    const prayerTimesCache = new Map();
+    
+    // Cache cleanup function
+    function cleanupCache(cache) {
+        const now = Date.now();
+        for (const [key, value] of cache.entries()) {
+            if (now - value.timestamp > CACHE_DURATION) {
+                cache.delete(key);
+            }
+        }
+    }
+    
+    // ========================================
     // DATA FETCHING FUNCTIONS
     // ========================================
     
     /**
-     * Fetches prayer times from Google Sheets
+     * Fetches prayer times from Google Sheets with caching
      * Tries multiple endpoints for compatibility
      * @returns {Promise<void>}
      */
     async function fetchPrayerTimes() {
         try {
+            // Check cache first
+            const cacheKey = `prayer_times_${SHEET_ID}`;
+            const cached = prayerTimesCache.get(cacheKey);
+            if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+                console.log('⚡ Using cached prayer times');
+                prayerTimesData = cached.data;
+                return;
+            }
+            
+            console.log('🔄 Fetching fresh prayer times...');
+            
             // Try multiple approaches to fetch data
             let csvText = '';
             
@@ -79,7 +109,8 @@
             try {
                 const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
                 const response = await fetch(url, {
-                    mode: 'cors'
+                    mode: 'cors',
+                    cache: 'no-cache' // Force fresh data
                 });
                 
                 if (!response.ok) {
@@ -92,7 +123,8 @@
                 try {
                     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
                     const response = await fetch(url, {
-                        mode: 'cors'
+                        mode: 'cors',
+                        cache: 'no-cache'
                     });
                     
                     if (!response.ok) {
@@ -176,6 +208,16 @@
             }
             
             console.log('✅ Prayer times loaded successfully:', prayerTimesData.length, 'days');
+            
+            // Cache the data
+            prayerTimesCache.set(cacheKey, {
+                data: prayerTimesData,
+                timestamp: Date.now()
+            });
+            
+            // Cleanup old cache entries
+            cleanupCache(prayerTimesCache);
+            
             if (prayerTimesData.length > 0) {
                 console.log('📅 Today\'s prayer times:', await getPrayerTimesForToday());
             }
@@ -247,36 +289,6 @@
                 isha: prayerTimesData[0]?.isha || "8:45 PM",
                 tomorrowFajr: prayerTimesData[0]?.fajr || "5:30 AM"
             };
-        }
-        
-        // Get sunrise time - optimized for speed
-        const currentConfigForTimes = window.IqamaWidgetConfig || CONFIG;
-        const skipSunriseAPI = currentConfigForTimes.skipSunriseAPI || currentConfigForTimes.skipAllAPIs;
-        const useCachedSunrise = currentConfigForTimes.useCachedSunrise;
-        
-        if (skipSunriseAPI) {
-            // Skip API call for speed - use fallback
-            prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise || '6:30 AM';
-            console.log('⚡ Skipping sunrise API for speed, using fallback:', prayerTimes.sunrise);
-        } else if (currentConfigForTimes.location) {
-            try {
-                // Use cached sunrise if available and configured
-                if (useCachedSunrise && currentConfigForTimes.fallbackSunrise) {
-                    prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise;
-                    console.log('🌅 Using cached sunrise time:', prayerTimes.sunrise);
-                } else {
-                    // Get coordinates for the location
-                    const coords = await getCoordinatesFromAddress(currentConfigForTimes.location);
-                    const sunriseTime = await getSunriseTime(coords.lat, coords.lng);
-                    prayerTimes.sunrise = sunriseTime;
-                    console.log('🌅 Sunrise time from API:', sunriseTime, 'for', currentConfigForTimes.location);
-                }
-            } catch (error) {
-                console.log('Could not fetch sunrise time, using default');
-                prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise || '6:30 AM';
-            }
-        } else {
-            prayerTimes.sunrise = currentConfigForTimes.fallbackSunrise || '6:30 AM';
         }
         
         return prayerTimes;
@@ -394,123 +406,6 @@
         };
     }
 
-    // Get sunrise time from API
-    async function getSunriseTime(lat, lng) {
-        try {
-            // Primary API: Sunrise-Sunset with optimized parameters
-            const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&formatted=0&tzid=auto`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'User-Agent': 'IqamaWidget/1.0'
-                }
-            });
-            
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
-            const data = await response.json();
-            
-            if (data.status === 'OK' && data.results.sunrise) {
-                const sunriseUTC = new Date(data.results.sunrise);
-                
-                // Get timezone - optimized for speed
-                let timeZoneId;
-                const currentConfig = window.IqamaWidgetConfig || CONFIG;
-                const skipTimezoneAPI = currentConfig.skipTimezoneAPI || currentConfig.skipAllAPIs;
-                
-                if (skipTimezoneAPI) {
-                    // Skip timezone API for speed - use browser timezone
-                    timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                    console.log('⚡ Skipping timezone API for speed, using browser timezone:', timeZoneId);
-                } else {
-                    try {
-                        // Method 1: TimeAPI.io (fastest)
-                        const tzResp = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`, {
-                            headers: { 'Accept': 'application/json' }
-                        });
-                        if (tzResp.ok) {
-                            const tzData = await tzResp.json();
-                            timeZoneId = tzData && (tzData.timeZone || tzData.timezone || tzData.time_zone);
-                        }
-                    } catch (e) {
-                        console.log('Timezone lookup error:', e);
-                    }
-                    
-                    // Method 2: Browser timezone fallback
-                    if (!timeZoneId) {
-                        timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                    }
-                }
-                
-                const localTime = new Intl.DateTimeFormat('en-US', {
-                    timeZone: timeZoneId,
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                }).format(sunriseUTC);
-                
-                console.log('🌅 Sunrise time:', localTime, 'for coordinates:', lat, lng);
-                return localTime;
-            }
-        } catch (error) {
-            console.log('Sunrise API error:', error);
-            
-            // Fallback: Calculate approximate sunrise
-            try {
-                const approximateSunrise = calculateApproximateSunrise(lat, lng);
-                console.log('🌅 Using approximate sunrise:', approximateSunrise);
-                return approximateSunrise;
-            } catch (e) {
-                console.log('Approximate sunrise calculation failed:', e);
-            }
-        }
-        
-        // Final fallback
-        return '6:30 AM';
-    }
-
-    // Approximate sunrise calculation as backup
-    function calculateApproximateSunrise(lat, lng) {
-        const now = new Date();
-        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
-        
-        // Simplified sunrise calculation based on latitude and day of year
-        const latRad = lat * Math.PI / 180;
-        const declination = 23.45 * Math.sin((284 + dayOfYear) * Math.PI / 180);
-        const hourAngle = Math.acos(-Math.tan(latRad) * Math.tan(declination * Math.PI / 180));
-        const sunriseHour = 12 - (hourAngle * 12 / Math.PI);
-        
-        const hours = Math.floor(sunriseHour);
-        const minutes = Math.floor((sunriseHour - hours) * 60);
-        
-        const time = new Date();
-        time.setHours(hours, minutes, 0, 0);
-        
-        return time.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-    }
-
-    // Get coordinates from address using geocoding API
-    async function getCoordinatesFromAddress(address) {
-        try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`);
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                return {
-                    lat: parseFloat(data[0].lat),
-                    lng: parseFloat(data[0].lon)
-                };
-            }
-        } catch (error) {
-            console.log('Geocoding API error:', error);
-        }
-        
-        // Fallback to default coordinates (Phoenix, AZ)
-        return { lat: 33.4484, lng: -112.0740 };
-    }
 
     // ========================================
     // SMART WIDGET UPDATE FUNCTIONS
@@ -532,7 +427,6 @@
             // Update only the changing elements
             updatePrayerTimes(widget, newPrayerTimes);
             updatePrayerTimesHeading(widget);
-            updateCurrentPrayerHighlight(widget, newPrayerStatus);
             updateNextPrayerStatus(widget, newPrayerStatus);
             
             // Check if we're in demo mode and ensure proper placement
@@ -575,61 +469,6 @@
         }
     }
     
-    // Update current prayer highlight
-    function updateCurrentPrayerHighlight(widget, prayerStatus) {
-        // Remove old highlights
-        widget.querySelectorAll('.prayer-item').forEach(item => {
-            item.style.background = 'rgba(255, 255, 255, 0.05)';
-            item.style.borderColor = 'transparent';
-            
-            // Remove live indicator
-            const liveIndicator = item.querySelector('[style*="background: #10B981"]');
-            if (liveIndicator) {
-                liveIndicator.remove();
-            }
-        });
-        
-        // Add new highlight
-        if (prayerStatus.current) {
-            const currentElement = widget.querySelector(`[data-prayer="${prayerStatus.current}"]`);
-            if (currentElement) {
-                const currentConfig = window.IqamaWidgetConfig || CONFIG;
-                currentElement.style.background = 'rgba(255, 255, 255, 0.1)';
-                const textColor = getContrastingTextColor(currentConfig.backgroundColor);
-                currentElement.style.borderColor = textColor;
-                
-                // Ensure text styling matches CSS rules exactly
-                const textElements = currentElement.querySelectorAll('div');
-                textElements.forEach((textElement, index) => {
-                    // Remove any inline styles that might override CSS
-                    textElement.style.removeProperty('font-size');
-                    textElement.style.removeProperty('font-weight');
-                    textElement.style.removeProperty('color');
-                    textElement.style.removeProperty('opacity');
-                });
-                
-                // Add live indicator
-                const liveIndicator = document.createElement('div');
-                liveIndicator.style.cssText = `
-                    position: absolute;
-                    top: 4px;
-                    right: 4px;
-                    width: 6px;
-                    height: 6px;
-                    background: #10B981;
-                    border-radius: 50%;
-                    border: 0.5px solid white;
-                    animation: pulse 2s infinite;
-                    min-width: 6px;
-                    min-height: 6px;
-                    max-width: 6px;
-                    max-height: 6px;
-                `;
-                currentElement.appendChild(liveIndicator);
-            }
-        }
-    }
-    
     // Update next prayer status
     function updateNextPrayerStatus(widget, prayerStatus) {
         const nextPrayerElement = widget.querySelector('.next-prayer-status');
@@ -666,7 +505,7 @@ function getContrastingTextColor(backgroundColor) {
     return brightness < 128 ? '#ffffff' : '#000000';
 }
 
-// Helper function to create glassmorphism background
+// Helper function to create glassmorphism background with true inverse
 function createGlassmorphism(backgroundColor, accentColor) {
     // Convert hex to RGB for transparency
     const hexToRgb = (hex) => {
@@ -687,10 +526,10 @@ function createGlassmorphism(backgroundColor, accentColor) {
     
     // Create glassmorphism effect with backdrop blur and transparency
     if (isLight) {
-        // Light background: subtle dark transparency
-        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.85)`;
+        // Light background: darker transparency for true inverse
+        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.95)`;
     } else {
-        // Dark background: subtle light transparency
+        // Dark background: lighter transparency
         return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.9)`;
     }
 }
@@ -700,9 +539,9 @@ function getCardColors(backgroundColor) {
     const isDark = getContrastingTextColor(backgroundColor) === '#ffffff';
     return {
         background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-        border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
+        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+        border: isDark ? 'rgba(255, 255, 255, 0.1)' : '#cccccc',
+        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.3)'
     };
 }
 
@@ -726,6 +565,8 @@ function getCardColors(backgroundColor) {
         
         // Get card colors for consistent styling
         const cardColors = getCardColors(currentConfig.backgroundColor);
+        console.log('🎨 Card colors:', cardColors);
+        console.log('🎨 Background color:', currentConfig.backgroundColor);
         
         // Get date info for next-day prayers
         const currentDate = new Date();
@@ -756,14 +597,15 @@ function getCardColors(backgroundColor) {
                 -webkit-backdrop-filter: blur(20px);
                 color: ${textColor};
                 border-radius: ${currentConfig.borderRadius};
-                padding: 32px;
+                padding: 24px;
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
                 border: 1px solid ${cardColors.border};
-                max-width: 600px;
                 width: 100%;
-                margin: 0 auto;
+                max-width: 100%;
+                margin: 0;
                 position: relative;
+                box-sizing: border-box;
                 --background-color: ${currentConfig.backgroundColor};
                 --accent-color: ${textColor};
                 --space-xs: 4px;
@@ -804,7 +646,7 @@ function getCardColors(backgroundColor) {
                 </div>
                 
                 <div style="
-                    padding: 32px;
+                    padding: 16px;
                     position: relative;
                     z-index: 2;
                 ">
@@ -861,82 +703,15 @@ function getCardColors(backgroundColor) {
                             margin-right: auto;
                         ">
                         <style>
-                            /* Mobile-first responsive design - One column for all */
+                            /* Simple responsive design - adapts to current screen */
                             #iqama-widget {
-                                max-width: 100% !important;
                                 width: 100% !important;
-                                margin: 16px auto !important;
+                                max-width: 100% !important;
+                                margin: 0 !important;
+                                box-sizing: border-box !important;
                             }
                             
-                            /* Mobile (360px) - Full width with padding */
-                            @media (min-width: 360px) {
-                                #iqama-widget {
-                                    width: calc(100% - 32px) !important;
-                                    max-width: 360px !important;
-                                    margin: 16px auto !important;
-                                }
-                            }
-                            
-                            /* Mobile (390px) - Slightly wider */
-                            @media (min-width: 390px) {
-                                #iqama-widget {
-                                    width: calc(100% - 32px) !important;
-                                    max-width: 390px !important;
-                                    margin: 18px auto !important;
-                                }
-                            }
-                            
-                            /* Tablet (768px) - Good tablet width */
-                            @media (min-width: 768px) {
-                                #iqama-widget {
-                                    width: calc(100% - 48px) !important;
-                                    max-width: 480px !important;
-                                    margin: 24px auto !important;
-                                }
-                            }
-                            
-                            /* Tablet (810px) - Slightly wider tablet */
-                            @media (min-width: 810px) {
-                                #iqama-widget {
-                                    width: calc(100% - 48px) !important;
-                                    max-width: 520px !important;
-                                    margin: 28px auto !important;
-                                }
-                            }
-                            
-                            /* Desktop (1366px) - Comfortable desktop width */
-                            @media (min-width: 1366px) {
-                                #iqama-widget {
-                                    width: calc(100% - 64px) !important;
-                                    max-width: 600px !important;
-                                    margin: 32px auto !important;
-                                }
-                            }
-                            
-                            /* Large Desktop (1920px) - Optimal large screen width */
-                            @media (min-width: 1920px) {
-                                #iqama-widget {
-                                    width: calc(100% - 80px) !important;
-                                    max-width: 700px !important;
-                                    margin: 40px auto !important;
-                                }
-                            }
-                            
-
-                            
-                            /* Mobile (360px, 390px) */
-
-                            
-
-                            
-
-                            
-
-                            
-                            /* Desktops/Laptops (1366px, 1920px) */
-
-                            
-                            /* Mobile-first responsive design for Jumuah grid */
+                            /* Jumuah grid - simple single column */
                             .jumuah-grid {
                                 display: flex !important;
                                 flex-direction: column !important;
@@ -945,36 +720,6 @@ function getCardColors(backgroundColor) {
                                 width: 100% !important;
                                 max-width: 100% !important;
                                 box-sizing: border-box !important;
-                                overflow: hidden !important;
-                            }
-                            
-                            /* All screen sizes - Single column layout */
-                            @media (max-width: 767px) {
-                                .jumuah-grid {
-                                    gap: 8px !important;
-                                    padding: 0 4px !important;
-                                }
-                            }
-                            
-                            @media (min-width: 768px) and (max-width: 1023px) {
-                                .jumuah-grid {
-                                    gap: 8px !important;
-                                    padding: 0 6px !important;
-                                }
-                            }
-                            
-                            @media (min-width: 1024px) and (max-width: 1365px) {
-                                .jumuah-grid {
-                                    gap: 8px !important;
-                                    padding: 0 8px !important;
-                                }
-                            }
-                            
-                            @media (min-width: 1366px) {
-                                .jumuah-grid {
-                                    gap: 8px !important;
-                                    padding: 0 10px !important;
-                                }
                             }
                             
                             /* Pulse animation for live indicator */
@@ -995,8 +740,8 @@ function getCardColors(backgroundColor) {
                         </style>
                         
                         <div class="prayer-item" role="listitem" data-prayer="fajr" style="
-                            background: ${currentPrayer === 'fajr' ? cardColors.backgroundActive : cardColors.background};
-                            border: 2px solid ${currentPrayer === 'fajr' ? textColor : cardColors.border};
+                            background: ${cardColors.backgroundActive};
+                            border: 1px solid ${cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
@@ -1030,83 +775,11 @@ function getCardColors(backgroundColor) {
                                 text-align: center;
                             ">${iqamaTimes.fajr}</div>
                             
-                            ${currentPrayer === 'fajr' ? `
-                                <div style="
-                                    position: absolute;
-                                    top: 4px;
-                                    right: 4px;
-                                    width: 6px;
-                                    height: 6px;
-                                    background: #10B981;
-                                    border-radius: 50%;
-                                    border: 0.5px solid white;
-                                    animation: pulse 2s infinite;
-                                    min-width: 6px;
-                                    min-height: 6px;
-                                    max-width: 6px;
-                                    max-height: 6px;
-                                "></div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="prayer-item" role="listitem" data-prayer="sunrise" style="
-                            background: ${currentPrayer === 'sunrise' ? cardColors.backgroundActive : cardColors.background};
-                            border: 2px solid ${currentPrayer === 'sunrise' ? textColor : cardColors.border};
-                            border-radius: 12px;
-                            transition: all 0.3s ease;
-                            position: relative;
-                            padding: 20px 24px;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 80px;
-                            text-align: center;
-                        ">
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                opacity: 0.9;
-                                text-align: center;
-                                margin-bottom: 8px;
-                            ">Sunrise</div>
-                            
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                                text-align: center;
-                            ">${iqamaTimes.sunrise}</div>
-                            
-                            ${currentPrayer === 'sunrise' ? `
-                                <div style="
-                                    position: absolute;
-                                    top: 4px;
-                                    right: 4px;
-                                    width: 6px;
-                                    height: 6px;
-                                    background: #10B981;
-                                    border-radius: 50%;
-                                    border: 0.5px solid white;
-                                    animation: pulse 2s infinite;
-                                    min-width: 6px;
-                                    min-height: 6px;
-                                    max-width: 6px;
-                                    max-height: 6px;
-                                "></div>
-                            ` : ''}
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="dhuhr" style="
-                            background: ${currentPrayer === 'dhuhr' ? cardColors.backgroundActive : cardColors.background};
-                            border: 2px solid ${currentPrayer === 'dhuhr' ? textColor : cardColors.border};
+                            background: ${cardColors.backgroundActive};
+                            border: 1px solid ${cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
@@ -1140,28 +813,11 @@ function getCardColors(backgroundColor) {
                                 text-align: center;
                             ">${iqamaTimes.dhuhr}</div>
                             
-                            ${currentPrayer === 'dhuhr' ? `
-                                <div style="
-                                    position: absolute;
-                                    top: 4px;
-                                    right: 4px;
-                                    width: 6px;
-                                    height: 6px;
-                                    background: #10B981;
-                                    border-radius: 50%;
-                                    border: 0.5px solid white;
-                                    animation: pulse 2s infinite;
-                                    min-width: 6px;
-                                    min-height: 6px;
-                                    max-width: 6px;
-                                    max-height: 6px;
-                                "></div>
-                            ` : ''}
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="asr" style="
-                            background: ${currentPrayer === 'asr' ? cardColors.backgroundActive : cardColors.background};
-                            border: 2px solid ${currentPrayer === 'asr' ? textColor : cardColors.border};
+                            background: ${cardColors.backgroundActive};
+                            border: 1px solid ${cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
@@ -1195,28 +851,11 @@ function getCardColors(backgroundColor) {
                                 text-align: center;
                             ">${iqamaTimes.asr}</div>
                             
-                            ${currentPrayer === 'asr' ? `
-                                <div style="
-                                    position: absolute;
-                                    top: 4px;
-                                    right: 4px;
-                                    width: 6px;
-                                    height: 6px;
-                                    background: #10B981;
-                                    border-radius: 50%;
-                                    border: 0.5px solid white;
-                                    animation: pulse 2s infinite;
-                                    min-width: 6px;
-                                    min-height: 6px;
-                                    max-width: 6px;
-                                    max-height: 6px;
-                                "></div>
-                            ` : ''}
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="maghrib" style="
-                            background: ${currentPrayer === 'maghrib' ? cardColors.backgroundActive : cardColors.background};
-                            border: 2px solid ${currentPrayer === 'maghrib' ? textColor : cardColors.border};
+                            background: ${cardColors.backgroundActive};
+                            border: 1px solid ${cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
@@ -1250,28 +889,11 @@ function getCardColors(backgroundColor) {
                                 text-align: center;
                             ">${iqamaTimes.maghrib}</div>
                             
-                            ${currentPrayer === 'maghrib' ? `
-                                <div style="
-                                    position: absolute;
-                                    top: 4px;
-                                    right: 4px;
-                                    width: 6px;
-                                    height: 6px;
-                                    background: #10B981;
-                                    border-radius: 50%;
-                                    border: 0.5px solid white;
-                                    animation: pulse 2s infinite;
-                                    min-width: 6px;
-                                    min-height: 6px;
-                                    max-width: 6px;
-                                    max-height: 6px;
-                                "></div>
-                            ` : ''}
                         </div>
                         
                         <div class="prayer-item" role="listitem" data-prayer="isha" style="
-                            background: ${currentPrayer === 'isha' ? cardColors.backgroundActive : cardColors.background};
-                            border: 2px solid ${currentPrayer === 'isha' ? textColor : cardColors.border};
+                            background: ${cardColors.backgroundActive};
+                            border: 1px solid ${cardColors.border};
                             border-radius: 12px;
                             transition: all 0.3s ease;
                             position: relative;
@@ -1305,23 +927,6 @@ function getCardColors(backgroundColor) {
                                 text-align: center;
                             ">${iqamaTimes.isha}</div>
                             
-                            ${currentPrayer === 'isha' ? `
-                                <div style="
-                                    position: absolute;
-                                    top: 4px;
-                                    right: 4px;
-                                    width: 6px;
-                                    height: 6px;
-                                    background: #10B981;
-                                    border-radius: 50%;
-                                    border: 0.5px solid white;
-                                    animation: pulse 2s infinite;
-                                    min-width: 6px;
-                                    min-height: 6px;
-                                    max-width: 6px;
-                                    max-height: 6px;
-                                "></div>
-                            ` : ''}
                         </div>
                     </div>
 
@@ -1385,8 +990,8 @@ function getCardColors(backgroundColor) {
                                     <div style="
                                         padding: 8px 6px;
                                         background: ${cardColors.backgroundActive};
+                                        border: 1px solid ${cardColors.border};
                                         border-radius: 8px;
-                                        border: 1px solid ${cardColors.borderActive};
                                         min-width: 0;
                                         box-sizing: border-box;
                                         overflow: hidden;
@@ -1526,47 +1131,33 @@ function getCardColors(backgroundColor) {
         try {
             console.log('🔄 Initializing widget with speed optimizations...');
             
-            // Show loading spinner immediately
-            const container = document.getElementById('iqama-widget-container');
-            if (container && !document.getElementById('widget-preview')) {
-                container.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">
-                        <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid ${CONFIG.accentColor || '#1a1a1a'}; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
-                        <p style="text-align: center; color: #666; font-size: 16px; margin: 0; font-family: Arial, sans-serif;">Loading prayer times...</p>
-                    </div>
-                    <style>
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    </style>
-                `;
-            }
-            
             // Check for speed optimization flags
-            const skipTimezoneAPI = CONFIG.skipTimezoneAPI || CONFIG.skipAllAPIs;
-            const skipSunriseAPI = CONFIG.skipSunriseAPI || CONFIG.skipAllAPIs;
-            const useCachedSunrise = CONFIG.useCachedSunrise;
-            const parallelAPICalls = CONFIG.parallelAPICalls;
+            const skipAllAPIs = CONFIG.skipAllAPIs;
             
             console.log('⚡ Speed optimizations:', {
-                skipTimezoneAPI,
-                skipSunriseAPI,
-                useCachedSunrise,
-                parallelAPICalls
+                skipAllAPIs
             });
             
-            // Fetch prayer times (this is the most important data)
-            await fetchPrayerTimes();
-            console.log('✅ Prayer times fetched successfully');
-            
-            // Only auto-create widget if not in demo mode
+            // Create widget immediately with fallback data for instant display
             if (!document.getElementById('widget-preview')) {
-                console.log('🚀 Auto-creating widget (not in demo mode)');
+                console.log('🚀 Creating widget immediately with fallback data');
                 createWidget();
             } else {
                 console.log('🎭 Demo mode detected, widget will be created manually');
             }
+            
+            // Fetch prayer times in background (non-blocking)
+            fetchPrayerTimes().then(() => {
+                console.log('✅ Prayer times fetched successfully');
+                // Update widget with fresh data
+                updateWidgetContent().catch(error => {
+                    console.error('❌ Error updating widget with fresh data:', error);
+                });
+            }).catch(error => {
+                console.error('❌ Error fetching prayer times:', error);
+                // Widget already created with fallback data, so it's still functional
+            });
+            
         } catch (error) {
             console.error('❌ Widget initialization failed:', error);
             // Still try to create widget with fallback data

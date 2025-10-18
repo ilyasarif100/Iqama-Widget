@@ -62,6 +62,17 @@ function updateWidget() {
     return Promise.resolve();
 }
 
+// Helper function to get appropriate card colors based on background
+function getCardColors(backgroundColor) {
+    const isDark = getContrastingTextColor(backgroundColor) === '#ffffff';
+    return {
+        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+        border: isDark ? 'rgba(255, 255, 255, 0.1)' : '#cccccc',
+        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.3)'
+    };
+}
+
 /* Smooth color update function */
 function updateColorsSmoothly(widget, backgroundColor, accentColor) {
     console.log('🔄 Updating colors smoothly:', backgroundColor, accentColor);
@@ -87,6 +98,17 @@ function updateColorsSmoothly(widget, backgroundColor, accentColor) {
         if (element.style && element.style.color) {
             element.style.color = textColor;
         }
+    });
+    
+    // Update card colors for prayer items
+    const cardColors = getCardColors(backgroundColor);
+    console.log('🎨 Updated card colors:', cardColors);
+    
+    // Update prayer items
+    const prayerItems = widget.querySelectorAll('.prayer-item');
+    prayerItems.forEach(item => {
+        item.style.background = cardColors.backgroundActive;
+        item.style.borderColor = cardColors.border;
     });
     
     // Update description card styling
