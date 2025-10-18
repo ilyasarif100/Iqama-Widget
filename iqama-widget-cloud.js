@@ -580,7 +580,13 @@ function getCardColors(backgroundColor) {
         }
         
         const allPrayersPassed = prayerOrder.every(prayer => {
-            const prayerTime = timeToMinutes(iqamaTimes[prayer]);
+            let prayerTime;
+            if (prayer === 'jumuah') {
+                // For Friday, use the first Jumuah time
+                prayerTime = timeToMinutes(iqamaTimes['jumuah1']);
+            } else {
+                prayerTime = timeToMinutes(iqamaTimes[prayer]);
+            }
             return currentTime > (prayerTime + 30);
         });
         
@@ -1077,7 +1083,14 @@ function getCardColors(backgroundColor) {
             }
         }
         
-        if (targetScript) {
+        // Try to find the widget container first
+        const widgetContainer = document.getElementById('iqama-widget-container');
+        
+        if (widgetContainer) {
+            // Insert into the designated container
+            widgetContainer.appendChild(container);
+            console.log('✅ Widget inserted into iqama-widget-container');
+        } else if (targetScript) {
             // Insert after the script tag
             targetScript.parentNode.insertBefore(container, targetScript.nextSibling);
             console.log('✅ Widget inserted after script tag');
