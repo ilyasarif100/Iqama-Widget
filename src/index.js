@@ -5,7 +5,7 @@
 
 import { logger } from './utils/logger.js';
 import { getConfig } from './config/config.js';
-import { WidgetManager } from './ui/widget-manager.js';
+import { WidgetManager } from './ui/widget.js';
 
 // Global widget manager instance
 let widgetManager = null;

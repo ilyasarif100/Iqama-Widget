@@ -4,7 +4,7 @@
  */
 
 import { logger } from '../utils/logger.js';
-import { createCacheKey } from '../utils/helpers.js';
+import { createCacheKey } from '../utils/utils.js';
 
 export class CacheManager {
     constructor(cacheDuration = 10 * 60 * 1000) { // 10 minutes default

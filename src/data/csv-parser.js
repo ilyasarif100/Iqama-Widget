@@ -4,7 +4,7 @@
  */
 
 import { logger } from '../utils/logger.js';
-import { parseCSVLine, isValidValue } from '../utils/helpers.js';
+import { parseCSVLine, isValidValue } from '../utils/utils.js';
 import { CSV_COLUMNS, JUMAH_ROWS, FALLBACK_VALUES } from '../config/constants.js';
 
 export class DataParser {

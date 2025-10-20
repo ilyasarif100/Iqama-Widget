@@ -4,7 +4,7 @@
  */
 
 import { logger } from '../utils/logger.js';
-import { getCurrentDateInfo, getTomorrowDateInfo } from '../utils/helpers.js';
+import { getCurrentDateInfo, getTomorrowDateInfo } from '../utils/utils.js';
 import { FALLBACK_VALUES } from '../config/constants.js';
 
 export class PrayerManager {

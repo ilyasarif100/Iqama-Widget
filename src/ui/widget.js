@@ -5,12 +5,12 @@
 
 import { logger } from '../utils/logger.js';
 import { getConfig, validateConfig } from '../config/config.js';
-import { DataFetcher } from '../data/data-fetcher.js';
-import { DataParser } from '../data/data-parser.js';
+import { DataFetcher } from '../data/sheet-fetcher.js';
+import { DataParser } from '../data/csv-parser.js';
 import { DataValidator } from '../data/data-validator.js';
-import { CacheManager } from '../services/cache-manager.js';
-import { PrayerManager } from '../services/prayer-manager.js';
-import { WidgetRenderer } from './widget-renderer.js';
+import { CacheManager } from '../services/cache.js';
+import { PrayerManager } from '../services/prayer-times.js';
+import { WidgetRenderer } from './renderer.js';
 
 export class WidgetManager {
     constructor() {

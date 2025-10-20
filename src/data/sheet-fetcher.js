@@ -4,7 +4,7 @@
  */
 
 import { logger } from '../utils/logger.js';
-import { extractSheetId } from '../utils/helpers.js';
+import { extractSheetId } from '../utils/utils.js';
 
 export class DataFetcher {
     constructor() {

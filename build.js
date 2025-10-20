@@ -18,11 +18,11 @@ async function buildWidget() {
     
     try {
         const result = await build({
-            entryPoints: ['src/main.js'],
+            entryPoints: ['src/index.js'],
             bundle: true,
             format: 'iife',
             globalName: 'IqamaWidget',
-            outfile: 'dist/iqama-widget-cloud.js',
+            outfile: 'dist/prayer-times-widget.js',
             minify: !isWatch,
             sourcemap: isWatch,
             target: 'es2015',
@@ -52,10 +52,10 @@ async function buildWidget() {
         }
 
         console.log('✅ Build completed successfully!');
-        console.log('📦 Output: dist/iqama-widget-cloud.js');
+        console.log('📦 Output: dist/prayer-times-widget.js');
         
         // Generate file size info
-        const outputFile = 'dist/iqama-widget-cloud.js';
+        const outputFile = 'dist/prayer-times-widget.js';
         const stats = readFileSync(outputFile, 'utf8');
         const sizeKB = (stats.length / 1024).toFixed(2);
         console.log(`📊 File size: ${sizeKB} KB`);
