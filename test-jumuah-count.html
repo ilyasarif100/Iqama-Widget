@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumuah Count Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .test-btn:hover {
+            background: #2563eb;
+        }
+        .widget-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕌 Jumuah Count Test</h1>
+        
+        <div class="test-buttons">
+            <button class="test-btn" onclick="testJumuahCount(1)">Test 1 Jumuah</button>
+            <button class="test-btn" onclick="testJumuahCount(2)">Test 2 Jumuahs</button>
+            <button class="test-btn" onclick="testJumuahCount(3)">Test 3 Jumuahs</button>
+        </div>
+
+        <div class="widget-container">
+            <div id="iqama-widget-container">
+                <p style="text-align: center; color: #6b7280;">Widget will appear here...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Widget configuration
+        window.IqamaWidgetConfig = {
+            googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
+            title: 'Masjid Al-Noor',
+            location: 'Phoenix, United States',
+            backgroundColor: '#1a1a1a',
+            accentColor: '#ffffff',
+            borderRadius: '20px',
+            timeType: 'athan',
+            jumuahCount: 1,
+            debug: true,
+            logLevel: 'verbose'
+        };
+
+        function testJumuahCount(count) {
+            console.log(`Testing ${count} Jumuah(s)`);
+            
+            // Update configuration
+            window.IqamaWidgetConfig.jumuahCount = count;
+            
+            // Recreate widget
+            if (window.createWidget) {
+                window.createWidget();
+            }
+        }
+    </script>
+
+    <!-- Load the modular widget -->
+    <script src="iqama-widget-cloud.js"></script>
+</body>
+</html>

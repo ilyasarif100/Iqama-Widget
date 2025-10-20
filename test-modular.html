@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iqama Widget v2.0.0 - Modular Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .widget-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .success {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            color: #166534;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕌 Iqama Widget v2.0.0 - Modular Test</h1>
+            <p>Testing the new modular architecture</p>
+        </div>
+
+        <div id="status" class="status">
+            <h3>📊 Status</h3>
+            <p>Loading widget...</p>
+        </div>
+
+        <div class="widget-container">
+            <h3>🎯 Widget Preview</h3>
+            <div id="iqama-widget-container">
+                <p style="text-align: center; color: #6b7280;">Widget will appear here...</p>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>🔧 Configuration</h3>
+            <pre id="config-display">Loading configuration...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Widget configuration with debug enabled
+        window.IqamaWidgetConfig = {
+            googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
+            title: 'Masjid Al-Noor',
+            location: 'Phoenix, United States',
+            backgroundColor: '#1a1a1a',
+            accentColor: '#ffffff',
+            borderRadius: '20px',
+            timeType: 'athan',
+            jumuahCount: 1,
+            debug: true,
+            logLevel: 'verbose'
+        };
+
+        // Display configuration
+        document.getElementById('config-display').textContent = JSON.stringify(window.IqamaWidgetConfig, null, 2);
+
+        // Update status
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${type}`;
+            statusEl.querySelector('p').textContent = message;
+        }
+
+        // Monitor widget loading
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+            checkCount++;
+            const widget = document.getElementById('iqama-widget');
+            
+            if (widget) {
+                updateStatus('✅ Widget loaded successfully! Modular architecture working perfectly.', 'success');
+                clearInterval(checkInterval);
+            } else if (checkCount > 20) {
+                updateStatus('❌ Widget failed to load after 10 seconds', 'error');
+                clearInterval(checkInterval);
+            } else {
+                updateStatus(`⏳ Loading widget... (${checkCount * 0.5}s)`);
+            }
+        }, 500);
+    </script>
+
+    <!-- Load the modular widget -->
+    <script src="iqama-widget-cloud.js"></script>
+</body>
+</html>

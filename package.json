@@ -1,0 +1,39 @@
+{
+  "name": "iqama-widget",
+  "version": "2.0.0",
+  "description": "A modular, embeddable prayer times widget for Islamic websites",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch",
+    "clean": "rm -rf dist/*",
+    "test": "echo 'No tests yet' && exit 0"
+  },
+  "keywords": [
+    "prayer-times",
+    "islamic",
+    "widget",
+    "embed",
+    "google-sheets",
+    "iqama",
+    "athan"
+  ],
+  "author": "Ilyas Arif",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.19.12"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "demo/",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ilyasarif100/Iqama-Widget.git"
+  },
+  "homepage": "https://github.com/ilyasarif100/Iqama-Widget#readme"
+}

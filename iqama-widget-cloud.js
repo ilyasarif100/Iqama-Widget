@@ -1,1072 +1,171 @@
-(function() {
-    // ========================================
-    // CLOUD-HOSTED IQAMA WIDGET
-    // ========================================
-    // Super simple embed - just paste one script tag!
-    // Automatically extracts Sheet ID from Google Sheet URL
-    // ========================================
-    
-    // Configuration - users can modify these values
-    const CONFIG = window.IqamaWidgetConfig || {
-        // Google Sheets Configuration
-        googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
-        
-        // Display Configuration
-        title: 'Prayer Times',
-        location: 'ICCP AZ',
-        
-        // Styling Configuration
-        backgroundColor: '#1F2937',
-        accentColor: '#E5E7EB',
-        borderRadius: '20px',
-        
-        // Widget Configuration
-        timeType: 'athan',
-        jumuahCount: 1
-    };
-    
-    // Extract Sheet ID from Google Sheet URL
-    function extractSheetId(url) {
-        if (!url) {
-            return null;
-        }
-        
-        // Handle different Google Sheets URL formats
-        const patterns = [
-            /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,
-            /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit/,
-            /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/view/
-        ];
-        
-        for (let pattern of patterns) {
-            const match = url.match(pattern);
-            if (match) {
-                return match[1];
-            }
-        }
-        
-        return null;
-    }
-    
-    // Get the actual Sheet ID
-    const SHEET_ID = extractSheetId(CONFIG.googleSheetUrl);
-    if (!SHEET_ID) {
-        return;
-    }
-    
-    let prayerTimesData = [];
-    
-    // ========================================
-    // PERFORMANCE OPTIMIZATION CACHE
-    // ========================================
-    const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
-    const prayerTimesCache = new Map();
-    
-    // Cache cleanup function
-    function cleanupCache(cache) {
-        const now = Date.now();
-        for (const [key, value] of cache.entries()) {
-            if (now - value.timestamp > CACHE_DURATION) {
-                cache.delete(key);
-            }
-        }
-    }
-    
-    // ========================================
-    // DATA FETCHING FUNCTIONS
-    // ========================================
-    
-    /**
-     * Fetches prayer times from Google Sheets with caching
-     * Tries multiple endpoints for compatibility
-     * @returns {Promise<void>}
-     */
-    async function fetchPrayerTimes() {
-        try {
-            // Check cache first
-            const cacheKey = `prayer_times_${SHEET_ID}`;
-            const cached = prayerTimesCache.get(cacheKey);
-            if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-                prayerTimesData = cached.data;
-                console.log('Using cached data, length:', prayerTimesData.length);
-                return;
-            }
-            
-            console.log('Fetching fresh data...');
-            
-            // Try multiple approaches to fetch data
-            let csvText = '';
-            
-            // Method 1: Try Google Visualization API (most reliable)
-            try {
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-                const response = await fetch(url, {
-                    mode: 'cors',
-                    cache: 'no-cache' // Force fresh data
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                csvText = await response.text();
-            } catch (e) {
-                // Method 2: Try direct CSV export
-                try {
-                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-                    const response = await fetch(url, {
-                        mode: 'cors',
-                        cache: 'no-cache'
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    csvText = await response.text();
-                } catch (e2) {
-                    throw new Error('Both methods failed');
-                }
-            }
-            
-            // Parse CSV data
-            const lines = csvText.split('\n');
-            
-            prayerTimesData = [];
-            let jumuahTimes = {
-                jumuah1: '',
-                jumuah2: '',
-                jumuah3: ''
-            };
-            
-            // Extract Jumuah times from specific rows and columns
-            // 1st Jumuah: Row 2 (index 1), Columns J & K (indexes 9 & 10)
-            // 2nd Jumuah: Row 3 (index 2), Columns J & K (indexes 9 & 10)
-            // 3rd Jumuah: Row 4 (index 3), Columns J & K (indexes 9 & 10)
-            
-            for (let i = 1; i <= 3; i++) {
-                if (lines[i] && lines[i].trim()) {
-                    const values = lines[i].split(',').map(value => {
-                        return value.replace(/^"/, '').replace(/"$/, '').trim();
-                    });
-                    
-                    if (values.length >= 11) {
-                        const jumuahStart = values[9];  // Column J (0-indexed) - Starts
-                        const jumuahEnd = values[10];   // Column K (0-indexed) - Ends
-                        
-                        if (i === 1) {
-                            jumuahTimes.jumuah1 = `${jumuahStart} - ${jumuahEnd}`;
-                        } else if (i === 2) {
-                            jumuahTimes.jumuah2 = `${jumuahStart} - ${jumuahEnd}`;
-                        } else if (i === 3) {
-                            jumuahTimes.jumuah3 = `${jumuahStart} - ${jumuahEnd}`;
-                        }
-                    }
-                }
-            }
-            
-            console.log('Extracted Jumuah times:', jumuahTimes);
-            
-            // If no Jumuah times found in CSV, use fallback times
-            if (!jumuahTimes.jumuah1 && !jumuahTimes.jumuah2 && !jumuahTimes.jumuah3) {
-                jumuahTimes.jumuah1 = '--:-- - --:--';
-                jumuahTimes.jumuah2 = '--:-- - --:--';
-                jumuahTimes.jumuah3 = '--:-- - --:--';
-            }
-            
-            // Then parse daily prayer times (skip the first 3 rows which contain Jumuah data)
-            for (let i = 4; i < lines.length; i++) {
-                if (lines[i].trim()) {
-                    // Handle quoted CSV values properly
-                    const values = lines[i].split(',').map(value => {
-                        // Remove quotes and trim
-                        return value.replace(/^"/, '').replace(/"$/, '').trim();
-                    });
-                    
-                    if (values.length >= 7) {
-                        prayerTimesData.push({
-                            month: parseInt(values[0]),
-                            day: parseInt(values[1]),
-                            fajr: values[2],
-                            dhuhr: values[3],
-                            asr: values[4],
-                            maghrib: values[5],
-                            isha: values[6],
-                            ...jumuahTimes // Add Jumuah times to each day
-                        });
-                    }
-                }
-            }
-            
-            console.log('Prayer times data array length:', prayerTimesData.length);
-            console.log('First row:', prayerTimesData[0]);
-            
-            // Cache the data
-            prayerTimesCache.set(cacheKey, {
-                data: prayerTimesData,
-                timestamp: Date.now()
-            });
-            
-            // Cleanup old cache entries
-            cleanupCache(prayerTimesCache);
-            
-            if (prayerTimesData.length > 0) {
-                await getPrayerTimesForToday();
-            }
-        } catch (error) {
-            // Fallback to default times if fetch fails
-            prayerTimesData = [{
-                month: 1,
-                day: 1,
-                fajr: "5:30 AM",
-                dhuhr: "1:30 PM",
-                jumuah1: "1:30 PM - 2:00 PM",
-                jumuah2: "2:30 PM - 3:00 PM",
-                jumuah3: "3:30 PM - 4:00 PM",
-                asr: "4:45 PM",
-                maghrib: "7:15 PM",
-                isha: "8:45 PM"
-            }];
-        }
-    }
-    
-    // Get prayer times for current date and next day if needed
-    async function getPrayerTimesForToday() {
-        await fetchPrayerTimes();
-        
-        console.log('getPrayerTimesForToday - prayerTimesData length:', prayerTimesData.length);
-        console.log('getPrayerTimesForToday - first row:', prayerTimesData[0]);
-        
-        const today = new Date();
-        const currentMonth = today.getMonth() + 1;
-        const currentDay = today.getDate();
-        
-        // Find matching prayer times for today
-        const todayData = prayerTimesData.find(row => 
-            row.month === currentMonth && row.day === currentDay
-        );
-        
-        // Find matching prayer times for tomorrow
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowMonth = tomorrow.getMonth() + 1;
-        const tomorrowDay = tomorrow.getDate();
-        
-        const tomorrowData = prayerTimesData.find(row => 
-            row.month === tomorrowMonth && row.day === tomorrowDay
-        );
-        
-        let prayerTimes = {};
-        
-        if (todayData) {
-            prayerTimes = {
-                fajr: todayData.fajr,
-                dhuhr: todayData.dhuhr,
-                jumuah1: todayData.jumuah1,
-                jumuah2: todayData.jumuah2,
-                jumuah3: todayData.jumuah3,
-                asr: todayData.asr,
-                maghrib: todayData.maghrib,
-                isha: todayData.isha,
-                tomorrowFajr: tomorrowData?.fajr || todayData.fajr
-            };
-        } else {
-            // Use first row as demo data (January 1st)
-            const demoData = prayerTimesData[0];
-            console.log('Demo data:', demoData);
-            prayerTimes = {
-                fajr: demoData?.fajr || "--:--",
-                dhuhr: demoData?.dhuhr || "--:--",
-                jumuah1: demoData?.jumuah1 || "--:-- - --:--",
-                jumuah2: demoData?.jumuah2 || "--:-- - --:--",
-                jumuah3: demoData?.jumuah3 || "--:-- - --:--",
-                asr: demoData?.asr || "--:--",
-                maghrib: demoData?.maghrib || "--:--",
-                isha: demoData?.isha || "--:--",
-                tomorrowFajr: demoData?.fajr || "--:--"
-            };
-        }
-        
-        return prayerTimes;
-    }
-
-    // Get current time to determine next prayer
-    function getCurrentTime() {
-        const now = new Date();
-        return now.getHours() * 60 + now.getMinutes();
-    }
-
-    function timeToMinutes(timeStr) {
-        if (!timeStr || typeof timeStr !== 'string') {
-            return 0;
-        }
-        
-        const [time, period] = timeStr.split(' ');
-        if (!time || !period) {
-            return 0;
-        }
-        
-        const [hours, minutes] = time.split(':').map(Number);
-        if (isNaN(hours) || isNaN(minutes)) {
-            return 0;
-        }
-        
-        let totalMinutes = hours * 60 + minutes;
-        
-        if (period === 'PM' && hours !== 12) totalMinutes += 12 * 60;
-        if (period === 'AM' && hours === 12) totalMinutes = minutes;
-        
-        return totalMinutes;
-    }
-
-    /**
-     * Determines current and next prayer status based on current time
-     * Implements 30-minute window for "current prayer" and Friday logic
-     * @param {Object} iqamaTimes - Object containing prayer times
-     * @returns {Object} Status object with current, next, status, and nextTime
-     */
-    function getPrayerStatus(iqamaTimes) {
-        if (!iqamaTimes || typeof iqamaTimes !== 'object') {
-            return { current: null, next: 'fajr', status: 'next', nextTime: '5:30 AM' };
-        }
-        
-        const currentTime = getCurrentTime();
-        const now = new Date();
-        const isFriday = now.getDay() === 5;
-        
-        // Define prayer order - on Friday, replace Dhuhr with Jumuah
-        let prayerOrder = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-        if (isFriday) {
-            // Use the first Jumuah time for Friday prayer order
-            prayerOrder = ['fajr', 'jumuah1', 'asr', 'maghrib', 'isha'];
-        }
-        const prayerTimes = {};
-        
-        // Convert all prayer times to minutes for comparison
-        for (let [prayer, time] of Object.entries(iqamaTimes)) {
-            if (prayerOrder.includes(prayer)) {
-                prayerTimes[prayer] = timeToMinutes(time);
-            }
-        }
-        
-        // Check for current prayer (within 30-minute window)
-        let currentPrayer = null;
-        for (let prayer of prayerOrder) {
-            const prayerTime = prayerTimes[prayer];
-            if (currentTime >= prayerTime && currentTime <= (prayerTime + 30)) {
-                currentPrayer = prayer;
-                break;
-            }
-        }
-        
-        // If we have a current prayer, show it
-        if (currentPrayer) {
-            return {
-                current: currentPrayer,
-                next: currentPrayer,
-                status: 'current',
-                nextTime: iqamaTimes[currentPrayer]
-            };
-        }
-        
-        // Find next prayer (closest upcoming)
-        let nextPrayer = null;
-        let shortestTimeDiff = Infinity;
-        let nextTime = '';
-        
-        for (let prayer of prayerOrder) {
-            const prayerTime = prayerTimes[prayer];
-            let timeDiff = prayerTime - currentTime;
-            
-            if (timeDiff > 0 && timeDiff < shortestTimeDiff) {
-                shortestTimeDiff = timeDiff;
-                nextPrayer = prayer;
-                nextTime = iqamaTimes[prayer];
-            }
-        }
-        
-        // If no next prayer found today, next is Fajr (tomorrow)
-        if (!nextPrayer) {
-            nextPrayer = 'fajr';
-            nextTime = iqamaTimes.tomorrowFajr || iqamaTimes.fajr;
-        }
-        
-        return {
-            current: null,
-            next: nextPrayer,
-            status: 'next',
-            nextTime: nextTime
-        };
-    }
-
-
-    // ========================================
-    // SMART WIDGET UPDATE FUNCTIONS
-    // ========================================
-    
-    // Smart content update function (non-destructive)
-    async function updateWidgetContent() {
-        const widget = document.getElementById('iqama-widget');
-        if (!widget) {
-            return;
-        }
-        
-        try {
-            // Fetch fresh data
-            const newPrayerTimes = await getPrayerTimesForToday();
-            const newPrayerStatus = getPrayerStatus(newPrayerTimes);
-            
-            // Update only the changing elements
-            updatePrayerTimes(widget, newPrayerTimes);
-            updatePrayerTimesHeading(widget);
-            
-        } catch (error) {
-            throw error;
-        }
-    }
-    
-    // Update individual prayer times
-    function updatePrayerTimes(widget, prayerTimes) {
-        const prayerElements = widget.querySelectorAll('.prayer-item');
-        prayerElements.forEach(element => {
-            const prayerName = element.dataset.prayer;
-            const timeElement = element.querySelector('div:last-child');
-            if (timeElement && prayerTimes[prayerName]) {
-                timeElement.textContent = prayerTimes[prayerName];
-            }
-        });
-    }
-    
-    // Update prayer times heading and description
-    function updatePrayerTimesHeading(widget) {
-        const currentConfig = window.IqamaWidgetConfig || CONFIG;
-        const heading = widget.querySelector('.prayer-times-heading');
-        const description = widget.querySelector('.prayer-times-description');
-        
-        if (heading) {
-            heading.textContent = currentConfig.timeType === 'athan' ? 'Athan Times' : 'Iqama Times';
-        }
-        
-        if (description) {
-            description.textContent = currentConfig.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called';
-        }
-    }
-    
-    // Helper function to determine if text should be white or black based on background
-function getContrastingTextColor(backgroundColor) {
-    // Convert hex to RGB
-    const hex = backgroundColor.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    
-    // Calculate brightness using luminance formula
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
-    // Return white for dark backgrounds, black for light backgrounds
-    return brightness < 128 ? '#ffffff' : '#000000';
-}
-
-// Helper function to create glassmorphism background with true inverse
-function createGlassmorphism(backgroundColor, accentColor) {
-    // Convert hex to RGB for transparency
-    const hexToRgb = (hex) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    };
-    
-    const bgRgb = hexToRgb(backgroundColor);
-    if (!bgRgb) return backgroundColor;
-    
-    // Determine if background is light or dark for appropriate transparency
-    const brightness = (bgRgb.r * 299 + bgRgb.g * 587 + bgRgb.b * 114) / 1000;
-    const isLight = brightness > 128;
-    
-    // Create glassmorphism effect with backdrop blur and transparency
-    if (isLight) {
-        // Light background: darker transparency for true inverse
-        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.95)`;
-    } else {
-        // Dark background: lighter transparency
-        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.9)`;
-    }
-}
-
-// Helper function to get appropriate card colors based on background
-function getCardColors(backgroundColor) {
-    const isDark = getContrastingTextColor(backgroundColor) === '#ffffff';
-    return {
-        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-        border: isDark ? 'rgba(255, 255, 255, 0.1)' : '#cccccc',
-        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.3)'
-    };
-}
-
-    // Create and inject the widget
-    async function createWidget() {
-        const iqamaTimes = await getPrayerTimesForToday();
-        console.log('iqamaTimes in createWidget:', iqamaTimes);
-        const prayerStatus = getPrayerStatus(iqamaTimes);
-        
-        // Get the current configuration (use window.IqamaWidgetConfig directly)
-        const currentConfig = window.IqamaWidgetConfig || CONFIG;
-        
-        // Determine text color based on background brightness
-        const textColor = getContrastingTextColor(currentConfig.backgroundColor);
-        
-        // Get card colors for consistent styling
-        const cardColors = getCardColors(currentConfig.backgroundColor);
-        
-        const widgetHTML = `
+/*
+ * Iqama Widget v2.0.0 - Modular Prayer Times Widget
+ * https://github.com/ilyasarif100/Iqama-Widget
+ * 
+ * Super simple embed - just paste one script tag!
+ * Automatically extracts Sheet ID from Google Sheet URL
+ * 
+ * Built: 2025-10-20T21:09:12.709Z
+ */
+var IqamaWidget=(()=>{var I=Object.defineProperty;var V=Object.getOwnPropertyDescriptor;var J=Object.getOwnPropertyNames,$=Object.getOwnPropertySymbols;var R=Object.prototype.hasOwnProperty,z=Object.prototype.propertyIsEnumerable;var P=(s,e,t)=>e in s?I(s,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):s[e]=t,m=(s,e)=>{for(var t in e||(e={}))R.call(e,t)&&P(s,t,e[t]);if($)for(var t of $(e))z.call(e,t)&&P(s,t,e[t]);return s};var N=(s,e)=>{for(var t in e)I(s,t,{get:e[t],enumerable:!0})},q=(s,e,t,r)=>{if(e&&typeof e=="object"||typeof e=="function")for(let i of J(e))!R.call(s,i)&&i!==t&&I(s,i,{get:()=>e[i],enumerable:!(r=V(e,i))||r.enumerable});return s};var k=s=>q(I({},"__esModule",{value:!0}),s);var c=(s,e,t)=>new Promise((r,i)=>{var o=u=>{try{f(t.next(u))}catch(w){i(w)}},h=u=>{try{f(t.throw(u))}catch(w){i(w)}},f=u=>u.done?r(u.value):Promise.resolve(u.value).then(o,h);f((t=t.apply(s,e)).next())});var G={};N(G,{WidgetManager:()=>T,initializeWidget:()=>_});var B={googleSheetUrl:"https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing",title:"Prayer Times",location:"ICCP AZ",backgroundColor:"#1F2937",accentColor:"#E5E7EB",borderRadius:"20px",timeType:"athan",jumuahCount:1,cacheDuration:6e5,pollingInterval:18e5,debug:!1,logLevel:"normal"};function p(){return m(m({},B),window.IqamaWidgetConfig||{})}function E(s){let t=["googleSheetUrl","title","location"].filter(r=>!s[r]);if(t.length>0)throw new Error(`Missing required configuration: ${t.join(", ")}`);return!0}var C=class{constructor(){this.config=p()}info(e,t=null){this.config.debug&&this.config.logLevel!=="minimal"&&console.log(`\u2139\uFE0F [INFO] ${e}`,t||"")}success(e,t=null){this.config.debug&&this.config.logLevel!=="minimal"&&console.log(`\u2705 [SUCCESS] ${e}`,t||"")}warn(e,t=null){console.warn(`\u26A0\uFE0F [WARNING] ${e}`,t||"")}error(e,t=null){console.error(`\u274C [ERROR] ${e}`,t||"")}debug(e,t=null){this.config.debug&&this.config.logLevel==="verbose"&&console.log(`\u{1F50D} [DEBUG] ${e}`,t||"")}dataFlow(e,t,r=null){this.config.debug&&this.config.logLevel==="verbose"&&console.log(`\u{1F4CA} [${e}] ${t}`,r||"")}performance(e,t,r=null){this.config.debug&&this.config.logLevel!=="minimal"&&console.log(`\u26A1 [PERF] ${e} took ${t}ms`,r||"")}validation(e,t,r=null){let i=t?"\u2705":"\u274C";this.config.debug&&this.config.logLevel!=="minimal"&&console.log(`${i} [VALIDATION] ${e}`,r||"")}},a=new C;var d={MONTH:0,DAY:1,FAJR:2,ZUHR:3,ASR:4,MAGHRIB:5,ISHA:6,EMPTY:7,JUMAH_LABEL:8,JUMAH_START:9,JUMAH_END:10},y={FIRST:1,SECOND:2,THIRD:3},F={ATHAN:"athan",IQAMA:"iqama"};var n={TIME:"--:--",JUMAH_TIME:"--:-- - --:--",TITLE:"Prayer Times",LOCATION:"Location"},H=[/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit/,/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/view/];function L(s){if(!s)return a.error("No URL provided to extractSheetId"),null;a.debug("Extracting Sheet ID from URL",s);for(let e of H){let t=s.match(e);if(t){let r=t[1];return a.success("Sheet ID extracted",r),r}}return a.error("Could not extract Sheet ID from URL",s),null}function S(s){return!s||!s.trim()?[]:s.split(",").map(e=>e.replace(/^"/,"").replace(/"$/,"").trim())}function U(){let s=new Date;return{month:s.getMonth()+1,day:s.getDate(),year:s.getFullYear()}}function W(){let s=new Date;return s.setDate(s.getDate()+1),{month:s.getMonth()+1,day:s.getDate(),year:s.getFullYear()}}function g(s){return s!=null&&s!==""}function D(s){return`prayer_times_${s}`}var b=class{constructor(){this.sheetId=null}setSheetId(e){if(this.sheetId=L(e),!this.sheetId)throw new Error("Invalid Google Sheet URL");a.info("Sheet ID set",this.sheetId)}fetchCSV(){return c(this,null,function*(){if(!this.sheetId)throw new Error("Sheet ID not set");a.info("Fetching CSV data from Google Sheets");let e="";try{e=yield this._fetchWithGoogleViz(),a.success("Successfully fetched data using Google Visualization API")}catch(t){a.warn("Google Visualization API failed, trying direct CSV export",t.message);try{e=yield this._fetchWithDirectExport(),a.success("Successfully fetched data using direct CSV export")}catch(r){throw a.error("Both fetch methods failed",r.message),new Error("Could not fetch data from Google Sheets")}}return e})}_fetchWithGoogleViz(){return c(this,null,function*(){let e=`https://docs.google.com/spreadsheets/d/${this.sheetId}/gviz/tq?tqx=out:csv`,t=yield fetch(e,{mode:"cors",cache:"no-cache"});if(!t.ok)throw new Error(`HTTP ${t.status}: ${t.statusText}`);return yield t.text()})}_fetchWithDirectExport(){return c(this,null,function*(){let e=`https://docs.google.com/spreadsheets/d/${this.sheetId}/export?format=csv`,t=yield fetch(e,{mode:"cors",cache:"no-cache"});if(!t.ok)throw new Error(`HTTP ${t.status}: ${t.statusText}`);return yield t.text()})}validateCSVData(e){if(!e||e.trim().length===0)throw new Error("Empty CSV data received");let t=e.split(`
+`);if(t.length<2)throw new Error("CSV data must have at least 2 lines (header + data)");return a.success("CSV data validation passed",{lines:t.length,firstLine:t[0]}),!0}};var M=class{constructor(){this.jumuahTimes={},this.prayerTimesData=[]}parseCSV(e){a.info("Starting CSV parsing");let t=e.split(`
+`);return a.dataFlow("PARSER","CSV split into lines",t.length),this._parseJumuahTimes(t),this._parsePrayerTimes(t),a.success("CSV parsing completed",{jumuahTimes:this.jumuahTimes,prayerDays:this.prayerTimesData.length}),{jumuahTimes:this.jumuahTimes,prayerTimesData:this.prayerTimesData}}_parseJumuahTimes(e){a.info("Parsing Jumuah times from rows 2-4"),this.jumuahTimes={jumuah1:"",jumuah2:"",jumuah3:""};for(let t=y.FIRST;t<=y.THIRD;t++)if(e[t]&&e[t].trim()){let r=S(e[t]);if(r.length>=d.JUMAH_END+1){let i=r[d.JUMAH_START],o=r[d.JUMAH_END];if(g(i)&&g(o)){let h=`${i} - ${o}`;t===y.FIRST?this.jumuahTimes.jumuah1=h:t===y.SECOND?this.jumuahTimes.jumuah2=h:t===y.THIRD&&(this.jumuahTimes.jumuah3=h),a.debug(`Parsed Jumuah ${t}`,h)}}}!this.jumuahTimes.jumuah1&&!this.jumuahTimes.jumuah2&&!this.jumuahTimes.jumuah3&&(a.warn("No Jumuah times found, using fallback values"),this.jumuahTimes.jumuah1=n.JUMAH_TIME,this.jumuahTimes.jumuah2=n.JUMAH_TIME,this.jumuahTimes.jumuah3=n.JUMAH_TIME)}_parsePrayerTimes(e){a.info("Parsing daily prayer times"),this.prayerTimesData=[];for(let t=4;t<e.length;t++)if(e[t]&&e[t].trim()){let r=S(e[t]);if(r.length>=d.ISHA+1){let i=m({month:parseInt(r[d.MONTH]),day:parseInt(r[d.DAY]),fajr:r[d.FAJR]||n.TIME,dhuhr:r[d.ZUHR]||n.TIME,asr:r[d.ASR]||n.TIME,maghrib:r[d.MAGHRIB]||n.TIME,isha:r[d.ISHA]||n.TIME},this.jumuahTimes);this.prayerTimesData.push(i)}}a.success("Daily prayer times parsed",this.prayerTimesData.length)}validateParsedData(){if(!this.prayerTimesData||this.prayerTimesData.length===0)throw new Error("No prayer times data parsed");let e=this.prayerTimesData[0],t=["month","day","fajr","dhuhr","asr","maghrib","isha"];for(let r of t)if(!g(e[r]))throw new Error(`Missing required field: ${r}`);return a.success("Parsed data validation passed"),!0}};var j=class{validateJumuahTimes(e){if(a.info("Validating Jumuah times"),!e)return a.error("Jumuah times object is null or undefined"),!1;let t=["jumuah1","jumuah2","jumuah3"],r=t.filter(i=>!g(e[i]));if(r.length>0)return a.error(`Missing Jumuah times: ${r.join(", ")}`),!1;for(let i of t){let o=e[i];if(o!==n.JUMAH_TIME&&!o.includes(" - "))return a.error(`Invalid Jumuah time format for ${i}: ${o}`),!1}return a.success("Jumuah times validation passed"),!0}validatePrayerData(e){if(a.debug("Validating prayer data for day",e),!e)return a.error("Prayer data is null or undefined"),!1;let r=["month","day","fajr","dhuhr","asr","maghrib","isha"].filter(i=>!g(e[i]));return r.length>0?(a.error(`Missing prayer data: ${r.join(", ")}`),!1):isNaN(e.month)||isNaN(e.day)?(a.error("Month and day must be numbers"),!1):e.month<1||e.month>12?(a.error(`Invalid month: ${e.month}`),!1):e.day<1||e.day>31?(a.error(`Invalid day: ${e.day}`),!1):(a.debug("Prayer data validation passed"),!0)}validatePrayerTimesArray(e){if(a.info("Validating prayer times array"),!Array.isArray(e))return a.error("Prayer times data is not an array"),!1;if(e.length===0)return a.error("Prayer times array is empty"),!1;let t=Math.min(5,e.length);for(let r=0;r<t;r++)if(!this.validatePrayerData(e[r]))return a.error(`Validation failed for prayer data at index ${r}`),!1;return a.success("Prayer times array validation passed",{totalDays:e.length,sampleValidated:t}),!0}validateConfig(e){if(a.info("Validating configuration"),!e)return a.error("Configuration is null or undefined"),!1;let r=["googleSheetUrl","title","location"].filter(i=>!g(e[i]));return r.length>0?(a.error(`Missing required configuration: ${r.join(", ")}`),!1):e.googleSheetUrl.includes("docs.google.com/spreadsheets")?isNaN(e.jumuahCount)||e.jumuahCount<1||e.jumuahCount>3?(a.error(`Invalid jumuahCount: ${e.jumuahCount}`),!1):(a.success("Configuration validation passed"),!0):(a.error("Invalid Google Sheet URL format"),!1)}validateCompleteDataSet(e){if(a.info("Validating complete data set"),!e)return a.error("Data set is null or undefined"),!1;let{jumuahTimes:t,prayerTimesData:r}=e;return!this.validateJumuahTimes(t)||!this.validatePrayerTimesArray(r)?!1:(a.success("Complete data set validation passed"),!0)}};var v=class{constructor(e=10*60*1e3){this.cache=new Map,this.cacheDuration=e,this.cleanupInterval=null,this._startCleanupInterval()}get(e){let t=this.cache.get(e);return t?Date.now()-t.timestamp>this.cacheDuration?(a.debug("Cache expired",e),this.cache.delete(e),null):(a.debug("Cache hit",e),t.data):(a.debug("Cache miss",e),null)}set(e,t){let r={data:t,timestamp:Date.now()};this.cache.set(e,r),a.debug("Data cached",e)}getPrayerTimes(e){let t=D(e);return this.get(t)}setPrayerTimes(e,t){let r=D(e);this.set(r,t)}clear(){this.cache.clear(),a.info("Cache cleared")}cleanup(){let e=Date.now(),t=0;for(let[r,i]of this.cache.entries())e-i.timestamp>this.cacheDuration&&(this.cache.delete(r),t++);t>0&&a.debug(`Cleaned up ${t} expired cache entries`)}_startCleanupInterval(){this.cleanupInterval=setInterval(()=>{this.cleanup()},5*60*1e3)}destroy(){this.cleanupInterval&&(clearInterval(this.cleanupInterval),this.cleanupInterval=null),this.clear()}getStats(){let e=Date.now(),t=0,r=0;for(let[i,o]of this.cache.entries())e-o.timestamp>this.cacheDuration?r++:t++;return{totalEntries:this.cache.size,validEntries:t,expiredEntries:r,cacheDuration:this.cacheDuration}}};var x=class{constructor(e,t,r,i){this.dataFetcher=e,this.dataParser=t,this.validator=r,this.cacheManager=i,this.prayerTimesData=[]}fetchPrayerTimes(){return c(this,null,function*(){a.info("Starting prayer times fetch process");try{let e=this.cacheManager.getPrayerTimes(this.dataFetcher.sheetId);if(e){a.success("Using cached prayer times data"),this.prayerTimesData=e;return}a.info("Cache miss, fetching fresh data");let t=yield this.dataFetcher.fetchCSV();this.dataFetcher.validateCSVData(t);let r=this.dataParser.parseCSV(t);this.validator.validateCompleteDataSet(r),this.prayerTimesData=r.prayerTimesData,this.cacheManager.setPrayerTimes(this.dataFetcher.sheetId,this.prayerTimesData),a.success("Prayer times fetch process completed",{totalDays:this.prayerTimesData.length})}catch(e){throw a.error("Failed to fetch prayer times",e.message),e}})}getPrayerTimesForDate(e=null){return c(this,null,function*(){yield this.fetchPrayerTimes();let t=e||U();a.info("Getting prayer times for date",t);let r=this.prayerTimesData.find(o=>o.month===t.month&&o.day===t.day),i={};if(r)a.success("Found prayer times for target date"),i={fajr:r.fajr,dhuhr:r.dhuhr,asr:r.asr,maghrib:r.maghrib,isha:r.isha,jumuah1:r.jumuah1,jumuah2:r.jumuah2,jumuah3:r.jumuah3,tomorrowFajr:this._getTomorrowFajr(t)};else{a.warn("No prayer times found for target date, using first row as demo data");let o=this.prayerTimesData[0];if(!o)throw a.error("No prayer data available"),new Error("No prayer data available");i={fajr:o.fajr||n.TIME,dhuhr:o.dhuhr||n.TIME,asr:o.asr||n.TIME,maghrib:o.maghrib||n.TIME,isha:o.isha||n.TIME,jumuah1:o.jumuah1||n.JUMAH_TIME,jumuah2:o.jumuah2||n.JUMAH_TIME,jumuah3:o.jumuah3||n.JUMAH_TIME,tomorrowFajr:o.fajr||n.TIME}}return a.success("Prayer times retrieved",i),i})}getPrayerTimesForToday(){return c(this,null,function*(){return yield this.getPrayerTimesForDate()})}_getTomorrowFajr(e){let t=W(),r=this.prayerTimesData.find(o=>o.month===t.month&&o.day===t.day);if(r)return r.fajr;let i=this.prayerTimesData.find(o=>o.month===e.month&&o.day===e.day);return i?i.fajr:n.TIME}getPrayerStatus(e){a.debug("Calculating prayer status");let t=new Date,r=t.getHours()*60+t.getMinutes(),i=[{name:"fajr",time:this._timeToMinutes(e.fajr)},{name:"dhuhr",time:this._timeToMinutes(e.dhuhr)},{name:"asr",time:this._timeToMinutes(e.asr)},{name:"maghrib",time:this._timeToMinutes(e.maghrib)},{name:"isha",time:this._timeToMinutes(e.isha)}];i.sort((u,w)=>u.time-w.time);let o=null,h=null;for(let u=0;u<i.length;u++)r>=i[u].time&&(o=i[u],h=i[(u+1)%i.length]);o||(h=i[0]);let f={currentPrayer:(o==null?void 0:o.name)||null,nextPrayer:(h==null?void 0:h.name)||"fajr",nextPrayerTime:(h==null?void 0:h.time)||i[0].time};return a.debug("Prayer status calculated",f),f}_timeToMinutes(e){if(!e||e===n.TIME)return 0;let[t,r]=e.split(" "),[i,o]=t.split(":").map(Number),h=i*60+o;return r==="PM"&&i!==12?h+=12*60:r==="AM"&&i===12&&(h-=12*60),h}refreshData(){return c(this,null,function*(){a.info("Refreshing prayer times data"),this.cacheManager.clear(),yield this.fetchPrayerTimes()})}};var A=class{constructor(){this.cardColors={}}renderWidget(e,t){a.info("Rendering widget HTML"),this.cardColors=this._getCardColors(t.backgroundColor);let r=t.accentColor,i=this._generateWidgetHTML(e,t,r);return a.success("Widget HTML rendered"),i}_generateWidgetHTML(e,t,r){let i=t.title||"Prayer Times",o=t.location||"Location",h=t.timeType===F.ATHAN?"\u{1F54C} Athan Times":"\u{1F54C} Iqama Times";return`
             <div id="iqama-widget" style="
-                background: ${createGlassmorphism(currentConfig.backgroundColor, currentConfig.accentColor)};
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                color: ${textColor};
-                border-radius: ${currentConfig.borderRadius};
-                padding: 24px;
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
-                border: 1px solid ${cardColors.border};
-                width: 100%;
+                background: ${t.backgroundColor};
+                color: ${r};
+                border-radius: ${t.borderRadius};
+                padding: 20px;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
                 max-width: 100%;
-                margin: 0;
-                position: relative;
                 box-sizing: border-box;
-                --background-color: ${currentConfig.backgroundColor};
-                --accent-color: ${textColor};
-                --space-xs: 4px;
-                --space-sm: 8px;
-                --space-md: 16px;
-                --space-lg: 24px;
-                --space-xl: 32px;
-                --text-xs: 12px;
-                --text-sm: 14px;
-                --text-base: 16px;
-                --text-lg: 18px;
-                --text-xl: 20px;
-                --text-2xl: 24px;
-                --text-3xl: 32px;
+                margin: 0 auto;
             ">
-                <div style="
-                    text-align: center;
-                    margin-bottom: 24px;
-                ">
-                    <div class="widget-title" style="
-                        color: ${textColor};
+                <style>
+                    #iqama-widget * {
+                        box-sizing: border-box;
+                    }
+                    
+                    .prayer-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 12px 16px;
+                        margin-bottom: 8px;
+                        background: ${this.cardColors.backgroundActive};
+                        border: 1px solid ${this.cardColors.border};
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
+                    }
+                    
+                    .prayer-item:hover {
+                        background: ${this.cardColors.background};
+                        border-color: ${this.cardColors.borderActive};
+                    }
+                    
+                    .prayer-name {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: ${r};
+                    }
+                    
+                    .prayer-time {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: ${r};
+                    }
+                    
+                    .jumuah-grid {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                        margin-top: 12px;
+                    }
+                    
+                    .jumuah-item {
+                        padding: 8px 6px;
+                        background: ${this.cardColors.backgroundActive};
+                        border: 1px solid ${this.cardColors.border};
+                        border-radius: 8px;
+                    }
+                    
+                    .jumuah-name {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: ${r};
+                        margin-bottom: 6px;
+                    }
+                    
+                    .jumuah-time {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: ${r};
+                    }
+                    
+                    .description-card {
+                        background: ${this.cardColors.background};
+                        border: 1px solid ${this.cardColors.border};
+                        border-radius: 8px;
+                        padding: 12px;
+                        margin-top: 16px;
+                        text-align: center;
+                    }
+                    
+                    .description-text {
+                        font-size: 14px;
+                        color: ${r};
+                        opacity: 0.8;
+                    }
+                </style>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="
+                        margin: 0 0 8px 0;
                         font-size: 24px;
                         font-weight: 700;
-                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        letter-spacing: -0.02em;
-                        line-height: 1.2;
-                        margin-bottom: 8px;
-                    ">${currentConfig.title}</div>
-                    <div class="widget-location" style="
-                        color: ${textColor};
-                        font-size: 18px;
-                        font-weight: 500;
-                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        letter-spacing: -0.01em;
-                        line-height: 1.3;
-                        opacity: 0.9;
-                    ">${currentConfig.location}</div>
+                        color: ${r};
+                    ">${i}</h2>
+                    <p style="
+                        margin: 0;
+                        font-size: 16px;
+                        color: ${r};
+                        opacity: 0.8;
+                    ">${o}</p>
                 </div>
                 
-                <div style="
-                    padding: 16px;
-                    position: relative;
-                    z-index: 2;
-                ">
-                    <!-- Dynamic Prayer Times Heading -->
-                    <div style="
-                        text-align: center;
-                        margin-bottom: 24px;
-                    ">
-                        <h2 class="prayer-times-heading" style="
-                            color: ${textColor};
-                            font-size: 20px;
-                            font-weight: 600;
-                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                            letter-spacing: -0.01em;
-                            line-height: 1.3;
-                            margin-bottom: 12px;
-                        ">${currentConfig.timeType === 'athan' ? 'Athan Times' : 'Iqama Times'}</h2>
-                        
-                        <!-- Description Card -->
-                        <div class="prayer-times-description-card" style="
-                            background: ${cardColors.background};
-                            border: 1px solid ${cardColors.border};
-                            border-radius: 12px;
-                            padding: 12px 16px;
-                            margin: 0 auto;
-                            max-width: 400px;
-                        ">
-                            <p class="prayer-times-description" style="
-                                color: ${textColor};
-                                font-size: 14px;
-                                font-weight: 400;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.4;
-                                opacity: 0.9;
-                                margin: 0;
-                                text-align: center;
-                            ">${currentConfig.timeType === 'athan' ? 'Times shown are when the Athan (call to prayer) is announced' : 'Times shown are when the Iqama (prayer begins) is called'}</p>
-                        </div>
-                    </div>
+                <div style="margin-bottom: 20px;">
+                    <h3 style="
+                        margin: 0 0 16px 0;
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: ${r};
+                    ">${h}</h3>
                     
-                    <div class="prayer-list" 
-                         role="list" 
-                         aria-label="Daily Prayer Times"
-                         style="
-                            display: flex;
-                            flex-direction: column;
-                            gap: 12px;
-                            margin-bottom: 24px;
-                            padding: 0 4px;
-                            width: 100%;
-                            max-width: 100%;
-                            margin-left: auto;
-                            margin-right: auto;
-                        ">
-                        <style>
-                            /* Simple responsive design - adapts to current screen */
-                            #iqama-widget {
-                                width: 100% !important;
-                                max-width: 100% !important;
-                                margin: 0 !important;
-                                box-sizing: border-box !important;
-                            }
-                            
-                            /* Jumuah grid - simple single column */
-                            .jumuah-grid {
-                                display: flex !important;
-                                flex-direction: column !important;
-                                gap: 8px !important;
-                                margin-top: 12px !important;
-                                width: 100% !important;
-                                max-width: 100% !important;
-                                box-sizing: border-box !important;
-                            }
-                        </style>
-                        
-                        <div class="prayer-item" role="listitem" data-prayer="fajr" style="
-                            background: ${cardColors.backgroundActive};
-                            border: 1px solid ${cardColors.border};
-                            border-radius: 12px;
-                            transition: all 0.3s ease;
-                            position: relative;
-                            padding: 20px 24px;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 80px;
-                            text-align: center;
-                        ">
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                opacity: 0.9;
-                                text-align: center;
-                                margin-bottom: 8px;
-                            ">Fajr</div>
-                            
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                                text-align: center;
-                            ">${iqamaTimes.fajr}</div>
-                            
-                        </div>
-                        
-                        <div class="prayer-item" role="listitem" data-prayer="dhuhr" style="
-                            background: ${cardColors.backgroundActive};
-                            border: 1px solid ${cardColors.border};
-                            border-radius: 12px;
-                            transition: all 0.3s ease;
-                            position: relative;
-                            padding: 20px 24px;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 80px;
-                            text-align: center;
-                        ">
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                opacity: 0.9;
-                                text-align: center;
-                                margin-bottom: 8px;
-                            ">Dhuhr</div>
-                            
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                                text-align: center;
-                            ">${iqamaTimes.dhuhr}</div>
-                            
-                        </div>
-                        
-                        <div class="prayer-item" role="listitem" data-prayer="asr" style="
-                            background: ${cardColors.backgroundActive};
-                            border: 1px solid ${cardColors.border};
-                            border-radius: 12px;
-                            transition: all 0.3s ease;
-                            position: relative;
-                            padding: 20px 24px;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 80px;
-                            text-align: center;
-                        ">
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                opacity: 0.9;
-                                text-align: center;
-                                margin-bottom: 8px;
-                            ">Asr</div>
-                            
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                                text-align: center;
-                            ">${iqamaTimes.asr}</div>
-                            
-                        </div>
-                        
-                        <div class="prayer-item" role="listitem" data-prayer="maghrib" style="
-                            background: ${cardColors.backgroundActive};
-                            border: 1px solid ${cardColors.border};
-                            border-radius: 12px;
-                            transition: all 0.3s ease;
-                            position: relative;
-                            padding: 20px 24px;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 80px;
-                            text-align: center;
-                        ">
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                opacity: 0.9;
-                                text-align: center;
-                                margin-bottom: 8px;
-                            ">Maghrib</div>
-                            
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                                text-align: center;
-                            ">${iqamaTimes.maghrib}</div>
-                            
-                        </div>
-                        
-                        <div class="prayer-item" role="listitem" data-prayer="isha" style="
-                            background: ${cardColors.backgroundActive};
-                            border: 1px solid ${cardColors.border};
-                            border-radius: 12px;
-                            transition: all 0.3s ease;
-                            position: relative;
-                            padding: 20px 24px;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 80px;
-                            text-align: center;
-                        ">
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                opacity: 0.9;
-                                text-align: center;
-                                margin-bottom: 8px;
-                            ">Isha</div>
-                            
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                                text-align: center;
-                            ">${iqamaTimes.isha}</div>
-                            
-                        </div>
-                    </div>
-
-                    
-                    <div class="jumuah-section" style="
-                        text-align: center;
-                        margin: 24px 0;
-                        padding: 16px;
-                        background: ${cardColors.background};
-                        border-radius: 16px;
-                        border: 2px solid ${cardColors.border};
-                        overflow: hidden;
-                        box-sizing: border-box;
-                    ">
-                        ${(() => {
-                            return currentConfig.jumuahCount === 1;
-                        })() ? `
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                margin-bottom: 8px;
-                            ">Jumuah Prayer</div>
-                            <div style="
-                                color: ${textColor};
-                                font-size: 22px;
-                                font-weight: 700;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                line-height: 1.1;
-                                letter-spacing: -0.02em;
-                            ">${iqamaTimes.jumuah1}</div>
-                        ` : `
-                            <div style="
-                                color: ${textColor};
-                                font-size: 18px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: -0.01em;
-                                line-height: 1.2;
-                                margin-bottom: 16px;
-                            ">Jumuah Prayers</div>
-                            <div class="jumuah-grid" style="
-                                display: flex;
-                                flex-direction: column;
-                                gap: 8px;
-                                margin-top: 12px;
-                                width: 100%;
-                                max-width: 100%;
-                                box-sizing: border-box;
-                                overflow: hidden;
-                            ">
-                                ${[1, 2, 3].slice(0, currentConfig.jumuahCount).map(num => `
-                                    <div style="
-                                        padding: 8px 6px;
-                                        background: ${cardColors.backgroundActive};
-                                        border: 1px solid ${cardColors.border};
-                                        border-radius: 8px;
-                                        min-width: 0;
-                                        box-sizing: border-box;
-                                        overflow: hidden;
-                                    ">
-                                        <div style="
-                                            color: ${textColor};
-                                            font-size: 16px;
-                                            font-weight: 600;
-                                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                            letter-spacing: -0.01em;
-                                            line-height: 1.2;
-                                            margin-bottom: 6px;
-                                        ">${num === 1 ? '1st' : num === 2 ? '2nd' : '3rd'} Jumuah Prayer</div>
-                                        <div style="
-                                            color: ${textColor};
-                                            font-size: 18px;
-                                            font-weight: 700;
-                                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                            line-height: 1.1;
-                                            letter-spacing: -0.02em;
-                                        ">${iqamaTimes[`jumuah${num}`] || '1:30 PM'}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `}
-                    </div>
-                    
-                    <div style="
-                        text-align: center;
-                        margin-top: 24px;
-                        padding: 0 8px;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                    ">
-                        <a href="${currentConfig.googleSheetUrl}" 
-                           target="_blank"
-                           style="
-                                display: inline-block;
-                                background: ${currentConfig.accentColor};
-                                color: ${getContrastingTextColor(currentConfig.accentColor)};
-                                padding: 16px 24px;
-                                border-radius: 16px;
-                                text-decoration: none;
-                                font-size: 16px;
-                                font-weight: 600;
-                                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                letter-spacing: 0.5px;
-                                text-transform: uppercase;
-                                border: 2px solid ${currentConfig.accentColor};
-                                transition: all 0.3s ease;
-                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                                text-align: center;
-                           "
-                           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)'"
-                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.15)'"
-                        >
-                            View Full Schedule
-                        </a>
-                    </div>
+                    ${this._renderPrayerTimes(e,r)}
+                </div>
+                
+                ${this._renderJumuahSection(e,t.jumuahCount,r)}
+                
+                <div class="description-card">
+                    <p class="description-text">
+                        Times shown are when the Athan is announced
+                    </p>
                 </div>
             </div>
-        `;
-
-        // Create a container div and inject the widget
-        const container = document.createElement('div');
-        container.innerHTML = widgetHTML;
-        
-        // Check if widget already exists to prevent multiple insertions
-        if (document.getElementById('iqama-widget')) {
-            return;
-        }
-        
-        // Try to find the widget container first
-        const widgetContainer = document.getElementById('iqama-widget-container');
-        
-        if (widgetContainer) {
-            // Insert into the designated container
-            widgetContainer.appendChild(container);
-        } else {
-            // Fallback: append to body
-            document.body.appendChild(container);
-        }
-
-        // Smart auto-refresh every 30 minutes to update prayer times (non-destructive)
-        setInterval(async () => {
-            try {
-                await updateWidgetContent();
-            } catch (error) {
-                // Don't remove the widget on error - just log it
-            }
-        }, 30 * 60 * 1000); // 30 minutes
-        
-        // Daily update at midnight (also non-destructive)
-        const now = new Date();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        
-        const timeUntilMidnight = tomorrow.getTime() - now.getTime();
-        
-        setTimeout(() => {
-            setInterval(async () => {
-                try {
-                    await updateWidgetContent();
-                } catch (error) {
-                    // Error handling
-                }
-            }, 86400000);
-            
-            // Initial daily update
-            updateWidgetContent().then(() => {
-                // Update completed
-            }).catch(error => {
-                // Update failed
-            });
-        }, timeUntilMidnight);
-    }
-
-    // Initialize the widget with speed optimizations
-    async function initializeWidget() {
-        try {
-            // Create widget immediately with fallback data for instant display
-            if (!document.getElementById('widget-preview')) {
-                createWidget();
-            }
-            
-            // Fetch prayer times in background (non-blocking)
-            fetchPrayerTimes().then(() => {
-                // Update widget with fresh data
-                updateWidgetContent().catch(error => {
-                    // Error updating widget with fresh data
-                });
-            }).catch(error => {
-                // Error fetching prayer times
-                // Widget already created with fallback data, so it's still functional
-            });
-            
-        } catch (error) {
-            // Widget initialization failed
-            // Still try to create widget with fallback data
-            if (!document.getElementById('widget-preview')) {
-                createWidget();
-            }
-        }
-    }
-    
-    // Start initialization
-    initializeWidget();
-    
-    // Expose functions for interactive demo
-    window.refreshWidget = async () => {
-        try {
-            await updateWidgetContent();
-        } catch (error) {
-            // Fallback to full recreation if smart update fails
-            const widget = document.getElementById('iqama-widget');
-            if (widget) {
-                widget.remove();
-            }
-            createWidget();
-        }
-    };
-    
-    window.createWidget = createWidget;
-    window.fetchPrayerTimes = fetchPrayerTimes;
-})();
+        `}_renderPrayerTimes(e,t){return[{name:"Fajr",time:e.fajr},{name:"Dhuhr",time:e.dhuhr},{name:"Asr",time:e.asr},{name:"Maghrib",time:e.maghrib},{name:"Isha",time:e.isha}].map(i=>`
+            <div class="prayer-item">
+                <span class="prayer-name">${i.name}</span>
+                <span class="prayer-time">${i.time}</span>
+            </div>
+        `).join("")}_renderJumuahSection(e,t,r){if(t===0)return"";let i=[{name:"1st Jumuah Prayer",time:e.jumuah1},{name:"2nd Jumuah Prayer",time:e.jumuah2},{name:"3rd Jumuah Prayer",time:e.jumuah3}].slice(0,t);return`
+            <div style="margin-bottom: 20px;">
+                <h3 style="
+                    margin: 0 0 16px 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: ${r};
+                ">Jumuah Prayers</h3>
+                
+                <div class="jumuah-grid">
+                    ${i.map(o=>`
+                        <div class="jumuah-item">
+                            <div class="jumuah-name">${o.name}</div>
+                            <div class="jumuah-time">${o.time}</div>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+        `}_getCardColors(e){let t=this._isDarkColor(e);return{background:t?"rgba(255, 255, 255, 0.05)":"rgba(0, 0, 0, 0.05)",backgroundActive:t?"rgba(255, 255, 255, 0.1)":"rgba(0, 0, 0, 0.1)",border:t?"rgba(255, 255, 255, 0.1)":"#cccccc",borderActive:t?"rgba(255, 255, 255, 0.15)":"rgba(0, 0, 0, 0.3)"}}_isDarkColor(e){let t=e.replace("#",""),r=parseInt(t.substr(0,2),16),i=parseInt(t.substr(2,2),16),o=parseInt(t.substr(4,2),16);return(r*299+i*587+o*114)/1e3<128}};var T=class{constructor(){this.config=null,this.dataFetcher=null,this.dataParser=null,this.validator=null,this.cacheManager=null,this.prayerManager=null,this.renderer=null,this.isInitialized=!1}initialize(){return c(this,null,function*(){a.info("Initializing widget manager");try{this.config=p(),E(this.config),this.dataFetcher=new b,this.dataParser=new M,this.validator=new j,this.cacheManager=new v(this.config.cacheDuration),this.renderer=new A,this.dataFetcher.setSheetId(this.config.googleSheetUrl),this.prayerManager=new x(this.dataFetcher,this.dataParser,this.validator,this.cacheManager),this.isInitialized=!0,a.success("Widget manager initialized successfully")}catch(e){throw a.error("Failed to initialize widget manager",e.message),e}})}createWidget(){return c(this,null,function*(){this.isInitialized||(yield this.initialize()),a.info("Creating widget");try{let e=yield this.prayerManager.getPrayerTimesForToday(),t=this.renderer.renderWidget(e,this.config);this._injectWidget(t),this._setupAutoRefresh(),a.success("Widget created and injected successfully")}catch(e){a.error("Failed to create widget",e.message),this._injectErrorWidget(e.message)}})}_injectWidget(e){let t=document.getElementById("iqama-widget-container");if(t)a.info("Found existing widget container"),t.innerHTML=e;else{a.info("No container found, creating new widget");let r=document.createElement("div");r.innerHTML=e;let i=document.querySelectorAll('script[src*="iqama-widget-cloud.js"]');if(i.length>0){let o=i[i.length-1];o.parentNode.insertBefore(r.firstElementChild,o.nextSibling)}else document.body.appendChild(r.firstElementChild)}}_injectErrorWidget(e){let t=`
+            <div id="iqama-widget" style="
+                background: #fef2f2;
+                color: #dc2626;
+                border: 1px solid #fecaca;
+                border-radius: 8px;
+                padding: 20px;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                text-align: center;
+            ">
+                <h3 style="margin: 0 0 8px 0;">\u26A0\uFE0F Widget Error</h3>
+                <p style="margin: 0; font-size: 14px;">${e}</p>
+            </div>
+        `;this._injectWidget(t)}_setupAutoRefresh(){this.config.pollingInterval>0&&(a.info("Setting up auto-refresh",this.config.pollingInterval),setInterval(()=>c(this,null,function*(){try{a.info("Auto-refreshing widget data"),yield this.prayerManager.refreshData(),yield this.createWidget()}catch(e){a.error("Auto-refresh failed",e.message)}}),this.config.pollingInterval))}updateConfig(e){a.info("Updating widget configuration"),this.config=m(m({},this.config),e),E(this.config),e.googleSheetUrl&&e.googleSheetUrl!==this.dataFetcher.sheetId&&this.dataFetcher.setSheetId(e.googleSheetUrl)}refreshWidget(){return c(this,null,function*(){a.info("Manually refreshing widget");try{yield this.prayerManager.refreshData(),yield this.createWidget()}catch(e){throw a.error("Widget refresh failed",e.message),e}})}destroy(){a.info("Destroying widget manager"),this.cacheManager&&this.cacheManager.destroy();let e=document.getElementById("iqama-widget");e&&e.remove(),this.isInitialized=!1,a.info("Widget manager destroyed")}};var l=null;function _(){a.info("Initializing Iqama Widget");try{l=new T,l.createWidget().then(()=>{a.success("Iqama Widget initialized successfully")}).catch(s=>{a.error("Failed to initialize widget",s.message)})}catch(s){a.error("Widget initialization failed",s.message)}}window.createWidget=function(){return c(this,null,function*(){return l?l.updateConfig(p()):l=new T,yield l.createWidget(),l})};window.refreshWidget=function(){return c(this,null,function*(){l?yield l.refreshWidget():a.warn("Widget manager not initialized")})};window.updateWidgetConfig=function(s){l?l.updateConfig(s):a.warn("Widget manager not initialized")};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",_):_();return k(G);})();

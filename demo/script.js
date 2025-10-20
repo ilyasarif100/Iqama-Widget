@@ -38,22 +38,9 @@ function updateWidget() {
     // Update generated code
     updateGeneratedCode(window.IqamaWidgetConfig);
     
-    // Recreate widget if it exists
-    const existingWidget = document.getElementById('iqama-widget');
-    if (existingWidget) {
-        existingWidget.remove();
-    }
-    
-    // Create new widget and return its promise
+    // Recreate widget with new configuration
     if (window.createWidget) {
-        return window.createWidget().then(() => {
-            // Move the widget to the preview container if it exists
-            const widget = document.getElementById('iqama-widget');
-            const previewContainer = document.getElementById('widget-preview');
-            if (widget && previewContainer) {
-                previewContainer.appendChild(widget);
-            }
-        });
+        return window.createWidget();
     }
     return Promise.resolve();
 }
@@ -1300,27 +1287,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Force update the global variable as well
             currentJumuahCount = window.IqamaWidgetConfig.jumuahCount;
             
-            // Create the widget with fresh data
-            if (window.fetchPrayerTimes) {
-                // Force fresh fetch before creating widget
-                window.fetchPrayerTimes().then(() => {
-                    window.createWidget().then(() => {
-                        // Move the widget to the preview container if it exists
-                        const widget = document.getElementById('iqama-widget');
-                        if (widget && previewContainer) {
-                            previewContainer.appendChild(widget);
-                        }
-                    });
-                });
-            } else {
-                // Fallback to regular widget creation
-                window.createWidget().then(() => {
-                    // Move the widget to the preview container if it exists
-                    const widget = document.getElementById('iqama-widget');
-                    if (widget && previewContainer) {
-                        previewContainer.appendChild(widget);
-                    }
-                });
+            // Create the widget
+            if (window.createWidget) {
+                window.createWidget();
             }
         }, 100); // Small delay to ensure config is set
     }
@@ -1381,11 +1350,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update generated code
                 updateGeneratedCode(window.IqamaWidgetConfig);
                 
-                // Update the existing widget smoothly
-                const existingWidget = document.getElementById('iqama-widget');
-                if (existingWidget) {
-                    updateJumuahSectionSmoothly(existingWidget, currentJumuahCount);
-                } else {
+                // Update the widget with new configuration
+                if (window.createWidget) {
+                    window.createWidget();
                 }
             }, 100));
         });
