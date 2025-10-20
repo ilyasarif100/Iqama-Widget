@@ -42,7 +42,8 @@ export class WidgetRenderer {
                 padding: 20px;
                 font-family: -apple-system, BlinkMacSystemFont, sans-serif;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                max-width: 100%;
+                max-width: 600px;
+                width: 100%;
                 box-sizing: border-box;
                 margin: 0 auto;
             ">
@@ -51,12 +52,23 @@ export class WidgetRenderer {
                         box-sizing: border-box;
                     }
                     
+                    /* Uniform mobile-style layout that scales proportionally */
+                    #iqama-widget {
+                        padding: 16px;
+                        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                        max-width: 600px;
+                        width: 100%;
+                        box-sizing: border-box;
+                        margin: 0 auto;
+                    }
+                    
                     .prayer-item {
                         display: flex;
-                        justify-content: space-between;
                         align-items: center;
-                        padding: 12px 16px;
-                        margin-bottom: 8px;
+                        justify-content: space-between;
+                        padding: 10px 12px;
+                        margin-bottom: 6px;
                         background: ${this.cardColors.backgroundActive};
                         border: 1px solid ${this.cardColors.border};
                         border-radius: 8px;
@@ -68,43 +80,77 @@ export class WidgetRenderer {
                         border-color: ${this.cardColors.borderActive};
                     }
                     
-                    .prayer-name {
+                    .prayer-info {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .prayer-icon {
                         font-size: 16px;
+                    }
+                    
+                    .prayer-name {
+                        font-size: 14px;
                         font-weight: 600;
                         color: ${textColor};
+                        flex-shrink: 0;
                     }
                     
                     .prayer-time {
-                        font-size: 18px;
+                        font-size: 16px;
                         font-weight: 700;
                         color: ${textColor};
+                        text-align: right;
+                        flex-grow: 1;
+                        margin-left: 10px;
                     }
                     
-                    .jumuah-grid {
+                    .jumuah-timeline {
                         display: flex;
-                        flex-direction: column;
                         gap: 8px;
                         margin-top: 12px;
+                        flex-wrap: wrap;
                     }
                     
-                    .jumuah-item {
+                    .jumuah-slot {
+                        flex: 1;
+                        min-width: 140px;
+                        text-align: center;
                         padding: 8px 6px;
                         background: ${this.cardColors.backgroundActive};
                         border: 1px solid ${this.cardColors.border};
                         border-radius: 8px;
                     }
                     
-                    .jumuah-name {
-                        font-size: 16px;
+                    .jumuah-label {
+                        font-size: 12px;
                         font-weight: 600;
                         color: ${textColor};
-                        margin-bottom: 6px;
+                        margin-bottom: 4px;
+                        white-space: nowrap;
                     }
                     
                     .jumuah-time {
-                        font-size: 18px;
+                        font-size: 13px;
                         font-weight: 700;
                         color: ${textColor};
+                        white-space: nowrap;
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .jumuah-timeline {
+                            flex-direction: column;
+                        }
+                        
+                        .jumuah-slot {
+                            min-width: auto;
+                        }
+                        
+                        .jumuah-time {
+                            white-space: normal;
+                            text-overflow: unset;
+                        }
                     }
                     
                     .description-card {
@@ -117,7 +163,7 @@ export class WidgetRenderer {
                     }
                     
                     .description-text {
-                        font-size: 14px;
+                        font-size: 12px;
                         color: ${textColor};
                         opacity: 0.8;
                     }
@@ -165,19 +211,48 @@ export class WidgetRenderer {
      */
     _renderPrayerTimes(prayerTimes, textColor) {
         const prayers = [
-            { name: 'Fajr', time: prayerTimes.fajr },
-            { name: 'Dhuhr', time: prayerTimes.dhuhr },
-            { name: 'Asr', time: prayerTimes.asr },
-            { name: 'Maghrib', time: prayerTimes.maghrib },
-            { name: 'Isha', time: prayerTimes.isha }
+            { name: 'Fajr', time: prayerTimes.fajr, icon: '🌅' },
+            { name: 'Dhuhr', time: prayerTimes.dhuhr, icon: '☀️' },
+            { name: 'Asr', time: prayerTimes.asr, icon: '🌤️' },
+            { name: 'Maghrib', time: prayerTimes.maghrib, icon: '🌇' },
+            { name: 'Isha', time: prayerTimes.isha, icon: '🌙' }
         ];
 
         return prayers.map(prayer => `
             <div class="prayer-item">
-                <span class="prayer-name">${prayer.name}</span>
+                <div class="prayer-info">
+                    <span class="prayer-icon">${prayer.icon}</span>
+                    <span class="prayer-name">${prayer.name}</span>
+                </div>
                 <span class="prayer-time">${prayer.time}</span>
             </div>
         `).join('');
+    }
+
+    /**
+     * Format Jumuah time range to compact format
+     */
+    _formatJumuahTime(timeString) {
+        if (!timeString || timeString.includes('--:--')) {
+            return timeString;
+        }
+        
+        // Handle format like "1:01 PM - 1:30 PM"
+        const parts = timeString.split(' - ');
+        if (parts.length === 2) {
+            const startTime = parts[0];
+            const endTime = parts[1];
+            
+            // Extract AM/PM from end time
+            const period = endTime.includes('AM') ? 'AM' : 'PM';
+            
+            // Remove AM/PM from start time
+            const startClean = startTime.replace(/\s*(AM|PM)/, '');
+            
+            return `${startClean}-${endTime}`;
+        }
+        
+        return timeString; // Fallback to original
     }
 
     /**
@@ -189,9 +264,9 @@ export class WidgetRenderer {
         }
 
         const jumuahTimes = [
-            { name: '1st Jumuah Prayer', time: prayerTimes.jumuah1 },
-            { name: '2nd Jumuah Prayer', time: prayerTimes.jumuah2 },
-            { name: '3rd Jumuah Prayer', time: prayerTimes.jumuah3 }
+            { name: '1st Jumuah', time: prayerTimes.jumuah1 },
+            { name: '2nd Jumuah', time: prayerTimes.jumuah2 },
+            { name: '3rd Jumuah', time: prayerTimes.jumuah3 }
         ].slice(0, jumuahCount);
 
         return `
@@ -203,11 +278,11 @@ export class WidgetRenderer {
                     color: ${textColor};
                 ">Jumuah Prayers</h3>
                 
-                <div class="jumuah-grid">
+                <div class="jumuah-timeline">
                     ${jumuahTimes.map(jumuah => `
-                        <div class="jumuah-item">
-                            <div class="jumuah-name">${jumuah.name}</div>
-                            <div class="jumuah-time">${jumuah.time}</div>
+                        <div class="jumuah-slot">
+                            <div class="jumuah-label">${jumuah.name}</div>
+                            <div class="jumuah-time">${this._formatJumuahTime(jumuah.time)}</div>
                         </div>
                     `).join('')}
                 </div>
