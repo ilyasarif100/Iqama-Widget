@@ -10,7 +10,6 @@
     const CONFIG = window.IqamaWidgetConfig || {
         // Google Sheets Configuration
         googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
-        sheetName: 'Sheet1',
         
         // Display Configuration
         title: 'Prayer Times',
@@ -23,10 +22,7 @@
         
         // Widget Configuration
         timeType: 'athan',
-        jumuahCount: 1,
-        
-        // Performance Optimization Flags (set to true for maximum speed)
-        skipAllAPIs: false           // Set to true to skip all external API calls
+        jumuahCount: 1
     };
     
     // Extract Sheet ID from Google Sheet URL
@@ -427,13 +423,6 @@
             // Update only the changing elements
             updatePrayerTimes(widget, newPrayerTimes);
             updatePrayerTimesHeading(widget);
-            updateNextPrayerStatus(widget, newPrayerStatus);
-            
-            // Check if we're in demo mode and ensure proper placement
-            const isDemo = document.getElementById('widget-preview');
-            if (isDemo && !isDemo.contains(widget)) {
-                isDemo.appendChild(widget);
-            }
             
             console.log('✅ Widget content updated successfully');
         } catch (error) {
@@ -469,27 +458,6 @@
         }
     }
     
-    // Update next prayer status
-    function updateNextPrayerStatus(widget, prayerStatus) {
-        const nextPrayerElement = widget.querySelector('.next-prayer-status');
-        if (nextPrayerElement && prayerStatus.next) {
-            const nextPrayerTime = prayerStatus.nextTime;
-            const isNextDay = prayerStatus.status === 'next-day';
-            
-            let statusText = '';
-            if (isNextDay) {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                statusText = `Next Prayer: ${prayerStatus.next} at ${nextPrayerTime} (${tomorrowFormatted})`;
-            } else {
-                statusText = `Next Prayer: ${prayerStatus.next} at ${nextPrayerTime}`;
-            }
-            
-            nextPrayerElement.textContent = statusText;
-        }
-    }
-
     // Helper function to determine if text should be white or black based on background
 function getContrastingTextColor(backgroundColor) {
     // Convert hex to RGB
@@ -549,11 +517,6 @@ function getCardColors(backgroundColor) {
     async function createWidget() {
         const iqamaTimes = await getPrayerTimesForToday();
         const prayerStatus = getPrayerStatus(iqamaTimes);
-        const currentPrayer = prayerStatus.current;
-        const nextPrayer = prayerStatus.next;
-        const isCurrentPrayer = prayerStatus.status === 'current';
-        const statusText = isCurrentPrayer ? 'Current Prayer' : 'Next Prayer';
-        const nextPrayerTime = prayerStatus.nextTime;
         
         // Get the current configuration (use window.IqamaWidgetConfig directly)
         const currentConfig = window.IqamaWidgetConfig || CONFIG;
@@ -567,34 +530,6 @@ function getCardColors(backgroundColor) {
         const cardColors = getCardColors(currentConfig.backgroundColor);
         console.log('🎨 Card colors:', cardColors);
         console.log('🎨 Background color:', currentConfig.backgroundColor);
-        
-        // Get date info for next-day prayers
-        const currentDate = new Date();
-        const currentTime = getCurrentTime();
-        
-        // Check if all of today's prayers have passed
-        const isFriday = currentDate.getDay() === 5;
-        let prayerOrder = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-        if (isFriday) {
-            prayerOrder = ['fajr', 'jumuah', 'asr', 'maghrib', 'isha'];
-        }
-        
-        const allPrayersPassed = prayerOrder.every(prayer => {
-            let prayerTime;
-            if (prayer === 'jumuah') {
-                // For Friday, use the first Jumuah time
-                prayerTime = timeToMinutes(iqamaTimes['jumuah1']);
-            } else {
-                prayerTime = timeToMinutes(iqamaTimes[prayer]);
-            }
-            return currentTime > (prayerTime + 30);
-        });
-        
-        const isNextDayFajr = !isCurrentPrayer && nextPrayer === 'fajr' && allPrayersPassed;
-        
-        const tomorrowDate = new Date(currentDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-        const tomorrowFormatted = tomorrowDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         
         const widgetHTML = `
             <div id="iqama-widget" style="
@@ -726,22 +661,6 @@ function getCardColors(backgroundColor) {
                                 width: 100% !important;
                                 max-width: 100% !important;
                                 box-sizing: border-box !important;
-                            }
-                            
-                            /* Pulse animation for live indicator */
-                            @keyframes pulse {
-                                0% {
-                                    opacity: 1;
-                                    transform: scale(1);
-                                }
-                                50% {
-                                    opacity: 0.7;
-                                    transform: scale(1.2);
-                                }
-                                100% {
-                                    opacity: 1;
-                                    transform: scale(1);
-                                }
                             }
                         </style>
                         
@@ -1072,17 +991,6 @@ function getCardColors(backgroundColor) {
             return;
         }
         
-        // Find the script tag that contains this widget
-        const scripts = document.querySelectorAll('script');
-        let targetScript = null;
-        
-        for (let script of scripts) {
-            if (script.src && script.src.includes('iqama-widget-cloud.js')) {
-                targetScript = script;
-                break;
-            }
-        }
-        
         // Try to find the widget container first
         const widgetContainer = document.getElementById('iqama-widget-container');
         
@@ -1090,10 +998,6 @@ function getCardColors(backgroundColor) {
             // Insert into the designated container
             widgetContainer.appendChild(container);
             console.log('✅ Widget inserted into iqama-widget-container');
-        } else if (targetScript) {
-            // Insert after the script tag
-            targetScript.parentNode.insertBefore(container, targetScript.nextSibling);
-            console.log('✅ Widget inserted after script tag');
         } else {
             // Fallback: append to body
             document.body.appendChild(container);
@@ -1143,13 +1047,6 @@ function getCardColors(backgroundColor) {
     async function initializeWidget() {
         try {
             console.log('🔄 Initializing widget with speed optimizations...');
-            
-            // Check for speed optimization flags
-            const skipAllAPIs = CONFIG.skipAllAPIs;
-            
-            console.log('⚡ Speed optimizations:', {
-                skipAllAPIs
-            });
             
             // Create widget immediately with fallback data for instant display
             if (!document.getElementById('widget-preview')) {
