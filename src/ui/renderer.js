@@ -87,18 +87,18 @@ export class WidgetRenderer {
                     }
                     
                     .prayer-icon {
-                        font-size: 16px;
+                        font-size: 18px;
                     }
                     
                     .prayer-name {
-                        font-size: 14px;
+                        font-size: 15px;
                         font-weight: 600;
                         color: ${textColor};
                         flex-shrink: 0;
                     }
                     
                     .prayer-time {
-                        font-size: 16px;
+                        font-size: 17px;
                         font-weight: 700;
                         color: ${textColor};
                         text-align: right;
@@ -124,7 +124,7 @@ export class WidgetRenderer {
                     }
                     
                     .jumuah-label {
-                        font-size: 12px;
+                        font-size: 14px;
                         font-weight: 600;
                         color: ${textColor};
                         margin-bottom: 4px;
@@ -132,7 +132,7 @@ export class WidgetRenderer {
                     }
                     
                     .jumuah-time {
-                        font-size: 13px;
+                        font-size: 16px;
                         font-weight: 700;
                         color: ${textColor};
                         white-space: nowrap;
@@ -163,7 +163,7 @@ export class WidgetRenderer {
                     }
                     
                     .description-text {
-                        font-size: 12px;
+                        font-size: 14px;
                         color: ${textColor};
                         opacity: 0.8;
                     }
