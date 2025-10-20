@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Embed Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .widget-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Testing Generated Embed Code</h1>
+        <p>This page tests the embed code generated from your demo page.</p>
+        
+        <div class="widget-container">
+            <h3>Widget Preview:</h3>
+            <!-- Prayer Times Widget -->
+            <div id="iqama-widget-container"></div>
+
+            <script>
+            // Widget configuration
+            window.IqamaWidgetConfig = {
+                googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
+                title: 'Masjid Al-Noor',
+                location: 'Phoenix, United States',
+                masjidAddress: 'Phoenix, United States',
+                backgroundColor: '#1a1a1a',
+                accentColor: '#ffffff',
+                borderRadius: '20px',
+                timeType: 'athan',
+                jumuahCount: 1,
+                // Speed optimizations
+                skipSunriseAPI: true,
+                fallbackSunrise: '6:01 AM'
+            };
+
+            // Load the widget script
+            const script = document.createElement('script');
+            script.src = 'https://ilyasarif100.github.io/Iqama-Widget/iqama-widget-cloud.js';
+            document.head.appendChild(script);
+            </script>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px;">
+            <h4>✅ Expected Results:</h4>
+            <ul>
+                <li>Widget should load instantly with fallback data</li>
+                <li>No console errors (check browser dev tools)</li>
+                <li>Dark theme with white text</li>
+                <li>Visible borders on prayer items</li>
+                <li>Clean, simple design without current prayer highlighting</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

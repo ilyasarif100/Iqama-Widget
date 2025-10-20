@@ -28,7 +28,6 @@
     // Extract Sheet ID from Google Sheet URL
     function extractSheetId(url) {
         if (!url) {
-            console.error('❌ Google Sheet URL is required');
             return null;
         }
         
@@ -42,19 +41,16 @@
         for (let pattern of patterns) {
             const match = url.match(pattern);
             if (match) {
-                console.log('✅ Sheet ID extracted:', match[1]);
                 return match[1];
             }
         }
         
-        console.error('❌ Could not extract Sheet ID from URL:', url);
         return null;
     }
     
     // Get the actual Sheet ID
     const SHEET_ID = extractSheetId(CONFIG.googleSheetUrl);
     if (!SHEET_ID) {
-        console.error('❌ Invalid Google Sheet URL. Please check your configuration.');
         return;
     }
     
@@ -63,7 +59,7 @@
     // ========================================
     // PERFORMANCE OPTIMIZATION CACHE
     // ========================================
-    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
     const prayerTimesCache = new Map();
     
     // Cache cleanup function
@@ -91,12 +87,9 @@
             const cacheKey = `prayer_times_${SHEET_ID}`;
             const cached = prayerTimesCache.get(cacheKey);
             if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-                console.log('⚡ Using cached prayer times');
                 prayerTimesData = cached.data;
                 return;
             }
-            
-            console.log('🔄 Fetching fresh prayer times...');
             
             // Try multiple approaches to fetch data
             let csvText = '';
@@ -155,9 +148,6 @@
                         const jumuahStart = values[8];  // Column I (0-indexed) - Starts
                         const jumuahEnd = values[9];    // Column J (0-indexed) - Ends
                         
-                        console.log(`🔍 Row ${i}: Label="${jumuahLabel}", Start="${jumuahStart}", End="${jumuahEnd}"`);
-                        console.log(`🔍 All values in row ${i}:`, values);
-                        
                         if (jumuahLabel === '1st Jumuah') {
                             jumuahTimes.jumuah1 = `${jumuahStart} - ${jumuahEnd}`;
                         } else if (jumuahLabel === '2nd Jumuah') {
@@ -169,11 +159,8 @@
                 }
             }
             
-            console.log('🕌 Jumuah times extracted:', jumuahTimes);
-            
             // If no Jumuah times found in CSV, use fallback times
             if (!jumuahTimes.jumuah1 && !jumuahTimes.jumuah2 && !jumuahTimes.jumuah3) {
-                console.log('⚠️ No Jumuah times found in CSV, using fallback times');
                 jumuahTimes.jumuah1 = '1:30 PM - 2:00 PM';
                 jumuahTimes.jumuah2 = '2:30 PM - 3:00 PM';
                 jumuahTimes.jumuah3 = '3:30 PM - 4:00 PM';
@@ -203,8 +190,6 @@
                 }
             }
             
-            console.log('✅ Prayer times loaded successfully:', prayerTimesData.length, 'days');
-            
             // Cache the data
             prayerTimesCache.set(cacheKey, {
                 data: prayerTimesData,
@@ -215,12 +200,9 @@
             cleanupCache(prayerTimesCache);
             
             if (prayerTimesData.length > 0) {
-                console.log('📅 Today\'s prayer times:', await getPrayerTimesForToday());
+                await getPrayerTimesForToday();
             }
         } catch (error) {
-            console.error('Error fetching prayer times:', error);
-            console.log('Using fallback times...');
-            
             // Fallback to default times if fetch fails
             prayerTimesData = [{
                 month: 1,
@@ -298,19 +280,16 @@
 
     function timeToMinutes(timeStr) {
         if (!timeStr || typeof timeStr !== 'string') {
-            console.error('Invalid time string:', timeStr);
             return 0;
         }
         
         const [time, period] = timeStr.split(' ');
         if (!time || !period) {
-            console.error('Invalid time format:', timeStr);
             return 0;
         }
         
         const [hours, minutes] = time.split(':').map(Number);
         if (isNaN(hours) || isNaN(minutes)) {
-            console.error('Invalid time numbers:', timeStr);
             return 0;
         }
         
@@ -411,7 +390,6 @@
     async function updateWidgetContent() {
         const widget = document.getElementById('iqama-widget');
         if (!widget) {
-            console.log('⚠️ No widget found for update');
             return;
         }
         
@@ -424,9 +402,7 @@
             updatePrayerTimes(widget, newPrayerTimes);
             updatePrayerTimesHeading(widget);
             
-            console.log('✅ Widget content updated successfully');
         } catch (error) {
-            console.error('❌ Error updating widget content:', error);
             throw error;
         }
     }
@@ -520,16 +496,12 @@ function getCardColors(backgroundColor) {
         
         // Get the current configuration (use window.IqamaWidgetConfig directly)
         const currentConfig = window.IqamaWidgetConfig || CONFIG;
-        console.log('🔧 Widget using config:', currentConfig);
-        console.log('🔧 Jumuah count in config:', currentConfig.jumuahCount);
         
         // Determine text color based on background brightness
         const textColor = getContrastingTextColor(currentConfig.backgroundColor);
         
         // Get card colors for consistent styling
         const cardColors = getCardColors(currentConfig.backgroundColor);
-        console.log('🎨 Card colors:', cardColors);
-        console.log('🎨 Background color:', currentConfig.backgroundColor);
         
         const widgetHTML = `
             <div id="iqama-widget" style="
@@ -867,8 +839,6 @@ function getCardColors(backgroundColor) {
                         box-sizing: border-box;
                     ">
                         ${(() => {
-                            console.log('🔧 Creating Jumuah section with count:', currentConfig.jumuahCount);
-                            console.log('🔧 Current config in Jumuah section:', currentConfig);
                             return currentConfig.jumuahCount === 1;
                         })() ? `
                             <div style="
@@ -908,10 +878,7 @@ function getCardColors(backgroundColor) {
                                 box-sizing: border-box;
                                 overflow: hidden;
                             ">
-                                ${[1, 2, 3].slice(0, (() => {
-                                    console.log('🔧 Multiple Jumuah section - count:', currentConfig.jumuahCount);
-                                    return currentConfig.jumuahCount;
-                                })()).map(num => `
+                                ${[1, 2, 3].slice(0, currentConfig.jumuahCount).map(num => `
                                     <div style="
                                         padding: 8px 6px;
                                         background: ${cardColors.backgroundActive};
@@ -987,7 +954,6 @@ function getCardColors(backgroundColor) {
         
         // Check if widget already exists to prevent multiple insertions
         if (document.getElementById('iqama-widget')) {
-            console.log('⚠️ Widget already exists, skipping insertion');
             return;
         }
         
@@ -997,23 +963,19 @@ function getCardColors(backgroundColor) {
         if (widgetContainer) {
             // Insert into the designated container
             widgetContainer.appendChild(container);
-            console.log('✅ Widget inserted into iqama-widget-container');
         } else {
             // Fallback: append to body
             document.body.appendChild(container);
-            console.log('⚠️ Widget appended to body');
         }
 
-        // Smart auto-refresh every minute to update next prayer highlight (non-destructive)
+        // Smart auto-refresh every 30 minutes to update prayer times (non-destructive)
         setInterval(async () => {
             try {
                 await updateWidgetContent();
-                console.log('✅ Widget content updated successfully');
             } catch (error) {
-                console.error('❌ Widget update failed:', error);
                 // Don't remove the widget on error - just log it
             }
-        }, 60000);
+        }, 30 * 60 * 1000); // 30 minutes
         
         // Daily update at midnight (also non-destructive)
         const now = new Date();
@@ -1026,19 +988,17 @@ function getCardColors(backgroundColor) {
         setTimeout(() => {
             setInterval(async () => {
                 try {
-                    console.log('🔄 Daily update: Refreshing widget for new date');
                     await updateWidgetContent();
-                    console.log('✅ Daily widget update completed');
                 } catch (error) {
-                    console.error('❌ Daily widget update failed:', error);
+                    // Error handling
                 }
             }, 86400000);
             
             // Initial daily update
             updateWidgetContent().then(() => {
-                console.log('✅ Initial daily update completed');
+                // Update completed
             }).catch(error => {
-                console.error('❌ Initial daily update failed:', error);
+                // Update failed
             });
         }, timeUntilMidnight);
     }
@@ -1046,33 +1006,26 @@ function getCardColors(backgroundColor) {
     // Initialize the widget with speed optimizations
     async function initializeWidget() {
         try {
-            console.log('🔄 Initializing widget with speed optimizations...');
-            
             // Create widget immediately with fallback data for instant display
             if (!document.getElementById('widget-preview')) {
-                console.log('🚀 Creating widget immediately with fallback data');
                 createWidget();
-            } else {
-                console.log('🎭 Demo mode detected, widget will be created manually');
             }
             
             // Fetch prayer times in background (non-blocking)
             fetchPrayerTimes().then(() => {
-                console.log('✅ Prayer times fetched successfully');
                 // Update widget with fresh data
                 updateWidgetContent().catch(error => {
-                    console.error('❌ Error updating widget with fresh data:', error);
+                    // Error updating widget with fresh data
                 });
             }).catch(error => {
-                console.error('❌ Error fetching prayer times:', error);
+                // Error fetching prayer times
                 // Widget already created with fallback data, so it's still functional
             });
             
         } catch (error) {
-            console.error('❌ Widget initialization failed:', error);
+            // Widget initialization failed
             // Still try to create widget with fallback data
             if (!document.getElementById('widget-preview')) {
-                console.log('🚀 Creating widget with fallback data');
                 createWidget();
             }
         }
@@ -1085,9 +1038,7 @@ function getCardColors(backgroundColor) {
     window.refreshWidget = async () => {
         try {
             await updateWidgetContent();
-            console.log('✅ Widget refreshed successfully');
         } catch (error) {
-            console.error('❌ Widget refresh failed:', error);
             // Fallback to full recreation if smart update fails
             const widget = document.getElementById('iqama-widget');
             if (widget) {

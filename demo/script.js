@@ -25,8 +25,6 @@ window.IqamaWidgetConfig = {
 
 // Update widget function
 function updateWidget() {
-    console.log('🔄 Updating widget...');
-    
     // Update configuration
     window.IqamaWidgetConfig.title = inputs.title.value;
     window.IqamaWidgetConfig.location = inputs.location.value;
@@ -36,8 +34,6 @@ function updateWidget() {
     window.IqamaWidgetConfig.jumuahCount = currentJumuahCount;
     window.IqamaWidgetConfig.backgroundColor = currentBackgroundColor;
     window.IqamaWidgetConfig.accentColor = currentAccentColor;
-    
-    console.log('📊 Updated config:', window.IqamaWidgetConfig);
     
     // Update generated code
     updateGeneratedCode(window.IqamaWidgetConfig);
@@ -75,8 +71,6 @@ function getCardColors(backgroundColor) {
 
 /* Smooth color update function */
 function updateColorsSmoothly(widget, backgroundColor, accentColor) {
-    console.log('🔄 Updating colors smoothly:', backgroundColor, accentColor);
-    
     // Determine text color based on background brightness
     const textColor = getContrastingTextColor(backgroundColor);
     
@@ -102,7 +96,6 @@ function updateColorsSmoothly(widget, backgroundColor, accentColor) {
     
     // Update card colors for prayer items
     const cardColors = getCardColors(backgroundColor);
-    console.log('🎨 Updated card colors:', cardColors);
     
     // Update prayer items
     const prayerItems = widget.querySelectorAll('.prayer-item');
@@ -141,13 +134,10 @@ function updateColorsSmoothly(widget, backgroundColor, accentColor) {
         button.style.background = accentColor;
         button.style.color = buttonTextColor;
         button.style.borderColor = accentColor;
-        console.log('🔘 Button updated - background:', accentColor, 'text:', buttonTextColor);
     }
     
     // Also update the main widget color
     widget.style.color = textColor;
-    
-    console.log('✅ Colors updated smoothly - text color:', textColor);
 }
 
 // Helper function to determine if text should be white or black based on background
@@ -207,7 +197,6 @@ function getCardColors(backgroundColor) {
 
 // Smooth time type update function
 function updateTimeTypeSmoothly(widget, timeType) {
-    console.log('🔄 Updating time type smoothly:', timeType);
     
     // Update the prayer times heading
     const prayerTimesHeading = widget.querySelector('.prayer-times-heading');
@@ -243,16 +232,13 @@ function updateTimeTypeSmoothly(widget, timeType) {
     
 
     
-    console.log('✅ Time type updated smoothly');
 }
 
 // Smooth Jumuah section update function
 function updateJumuahSectionSmoothly(widget, jumuahCount) {
-    console.log('🔄 Updating Jumuah section smoothly for count:', jumuahCount);
     
     const jumuahSection = widget.querySelector('.jumuah-section');
     if (!jumuahSection) {
-        console.log('❌ No Jumuah section found, recreating widget');
         // Fallback to full widget recreation
         window.createWidget().then(() => {
             const newWidget = document.getElementById('iqama-widget');
@@ -391,7 +377,6 @@ function updateJumuahSectionSmoothly(widget, jumuahCount) {
         }
     }
     
-    console.log('✅ Jumuah section updated successfully');
 }
 
 // Update generated code display
@@ -442,7 +427,6 @@ document.head.appendChild(script);
     const codeElement = document.getElementById('generatedCode');
     if (codeElement) {
         codeElement.textContent = code;
-        console.log('📋 Generated code updated:', config);
     }
 }
 
@@ -482,7 +466,6 @@ function debounce(func, wait) {
 
 // Color scheme selection function
 function selectColorScheme(element) {
-    console.log('🎨 Color scheme selected:', element.dataset.background);
     
     // Remove active class from all scheme options
     document.querySelectorAll('.scheme-option').forEach(option => {
@@ -495,7 +478,6 @@ function selectColorScheme(element) {
     // Update color variables
     currentBackgroundColor = element.dataset.background;
     currentAccentColor = element.dataset.accent;
-    console.log('📊 Updated colors:', currentBackgroundColor, currentAccentColor);
     
     // Update widget configuration
     window.IqamaWidgetConfig.backgroundColor = currentBackgroundColor;
@@ -821,7 +803,6 @@ async function searchCities(query) {
     const localResults = fuzzySearch(cacheKey, POPULAR_CITIES);
     
     if (localResults.length > 0) {
-        console.log('⚡ Instant local match for:', trimmedQuery);
         const formattedResults = localResults.map(city => ({
             name: city.name,
             lat: city.lat,
@@ -848,7 +829,6 @@ async function searchCities(query) {
     // Check cache for API results
     const cached = citySearchCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
-        console.log('🚀 Using cached API results for:', trimmedQuery);
         currentSuggestions = cached.data;
         if (cached.data && cached.data.length > 0) {
             showSuggestions(cached.data);
@@ -935,7 +915,6 @@ async function searchCities(query) {
             return; // Search was cancelled, don't show error
         }
         
-        console.error('❌ API search error:', error);
         
         // Only show error if no local results
         if (localResults.length === 0) {
@@ -1032,7 +1011,6 @@ async function selectCity(cityElement) {
     const lat = parseFloat(cityElement.dataset.lat);
     const lng = parseFloat(cityElement.dataset.lng);
     
-    console.log('✅ Selected city:', { city, country, countryCode, lat, lng });
     
     // Update current location data
     currentLocationData = {
@@ -1073,7 +1051,6 @@ async function getTimeZoneByCoordinates(lat, lng) {
             return data.timeZone || data.timezone || data.time_zone;
         }
     } catch (e) {
-        console.error('Timezone lookup error:', e);
     }
     return undefined;
 }
@@ -1081,7 +1058,6 @@ async function getTimeZoneByCoordinates(lat, lng) {
 // Fetch sunrise time from weather API
 async function fetchSunriseTime(lat, lng) {
     try {
-        console.log('🌅 Fetching sunrise time for:', lat, lng);
         
         // Primary API: Sunrise-Sunset with optimized parameters
         const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&formatted=0&tzid=auto`, {
@@ -1109,7 +1085,6 @@ async function fetchSunriseTime(lat, lng) {
                     timeZoneId = tzData && (tzData.timeZone || tzData.timezone || tzData.time_zone);
                 }
             } catch (e) {
-                console.log('Timezone lookup error:', e);
             }
 
             // Method 2: Browser timezone fallback
@@ -1124,25 +1099,20 @@ async function fetchSunriseTime(lat, lng) {
                 hour12: true
             }).format(sunriseUTC);
             
-            console.log('✅ Sunrise time (city local):', localTime, 'TZ:', timeZoneId);
             updateSunriseInWidget(localTime);
             return localTime;
         } else {
-            console.log('⚠️ No sunrise data available');
             updateSunriseInWidget('N/A');
             return 'N/A';
         }
     } catch (error) {
-        console.error('❌ Sunrise API error:', error);
         
         // Fallback: Calculate approximate sunrise
         try {
             const approximateSunrise = calculateApproximateSunrise(lat, lng);
-            console.log('🌅 Using approximate sunrise:', approximateSunrise);
             updateSunriseInWidget(approximateSunrise);
             return approximateSunrise;
         } catch (e) {
-            console.log('Approximate sunrise calculation failed:', e);
             updateSunriseInWidget('N/A');
             return 'N/A';
         }
@@ -1182,7 +1152,6 @@ function updateSunriseInWidget(sunriseTime) {
             const timeElement = sunriseElement.querySelector('div:last-child');
             if (timeElement) {
                 timeElement.textContent = sunriseTime;
-                console.log('✅ Updated sunrise time in widget:', sunriseTime);
             }
         }
     }
@@ -1190,7 +1159,6 @@ function updateSunriseInWidget(sunriseTime) {
 
 // Initialize location search functionality
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing location search...');
     
     const locationInput = document.getElementById('location');
     
@@ -1198,7 +1166,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add event listeners for city search
         locationInput.addEventListener('input', debounce((e) => {
             const query = e.target.value.trim();
-            console.log('🔍 Input query:', query);
             
             // Clear any error messages
             const errorDiv = document.getElementById('locationError');
@@ -1276,7 +1243,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize with default location
         setTimeout(async () => {
-            console.log('📍 Initializing with default location:', currentLocationData);
             await fetchSunriseTime(currentLocationData.lat, currentLocationData.lng);
         }, 1000);
     }
@@ -1284,7 +1250,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing demo...');
     
     // Initialize configuration from active buttons
     const activeTimeButton = document.querySelector('.time-button.active');
@@ -1294,21 +1259,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (activeTimeButton) {
         currentTimeType = activeTimeButton.dataset.time;
         window.IqamaWidgetConfig.timeType = currentTimeType;
-        console.log('⏰ Time type initialized from active button:', currentTimeType);
     }
     
     if (activeJumuahButton) {
         currentJumuahCount = parseInt(activeJumuahButton.dataset.count);
         window.IqamaWidgetConfig.jumuahCount = currentJumuahCount;
-        console.log('🕌 Jumuah count initialized from active button:', currentJumuahCount);
-        console.log('🕌 Active Jumuah button found:', activeJumuahButton);
-        console.log('🕌 Button data-count:', activeJumuahButton.dataset.count);
     } else {
-        console.log('❌ No active Jumuah button found!');
         // Fallback: set to 1 if no active button found
         currentJumuahCount = 1;
         window.IqamaWidgetConfig.jumuahCount = 1;
-        console.log('🔄 Fallback: Set Jumuah count to 1');
     }
     
     if (activeColorScheme) {
@@ -1316,13 +1275,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentAccentColor = activeColorScheme.dataset.accent;
         window.IqamaWidgetConfig.backgroundColor = currentBackgroundColor;
         window.IqamaWidgetConfig.accentColor = currentAccentColor;
-        console.log('🎨 Colors initialized from active scheme:', currentBackgroundColor, currentAccentColor);
     }
     
     // Ensure masjidAddress is set to location
     window.IqamaWidgetConfig.masjidAddress = window.IqamaWidgetConfig.location;
     
-    console.log('📊 Final config before widget creation:', window.IqamaWidgetConfig);
     
     // Initialize the widget
     if (window.createWidget) {
@@ -1334,18 +1291,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Small delay to ensure configuration is fully set
         setTimeout(() => {
-            console.log('🔧 Creating widget with config:', window.IqamaWidgetConfig);
-            console.log('🔧 Jumuah count in config:', window.IqamaWidgetConfig.jumuahCount);
             
             // Double-check that Jumuah count is set
             if (!window.IqamaWidgetConfig.jumuahCount) {
-                console.log('⚠️ Jumuah count not set, forcing to 1');
                 window.IqamaWidgetConfig.jumuahCount = 1;
             }
             
             // Force update the global variable as well
             currentJumuahCount = window.IqamaWidgetConfig.jumuahCount;
-            console.log('🔧 Final check - currentJumuahCount:', currentJumuahCount);
             
             // Create the widget with fresh data
             if (window.fetchPrayerTimes) {
@@ -1356,7 +1309,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const widget = document.getElementById('iqama-widget');
                         if (widget && previewContainer) {
                             previewContainer.appendChild(widget);
-                            console.log('✅ Widget moved to preview container');
                         }
                     });
                 });
@@ -1367,7 +1319,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const widget = document.getElementById('iqama-widget');
                     if (widget && previewContainer) {
                         previewContainer.appendChild(widget);
-                        console.log('✅ Widget moved to preview container');
                     }
                 });
             }
@@ -1379,12 +1330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners to time buttons
     const timeButtons = document.querySelectorAll('.time-button');
-    console.log('🔍 Found time buttons:', timeButtons.length);
     if (timeButtons.length > 0) {
         timeButtons.forEach((button, index) => {
-            console.log(`🔍 Time button ${index}:`, button.dataset.time);
             button.addEventListener('click', debounce(() => {
-                console.log('🎯 Time button clicked:', button.dataset.time);
                 
                 // Remove active class from all time buttons
                 timeButtons.forEach(btn => btn.classList.remove('active'));
@@ -1394,11 +1342,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update the global variable
                 currentTimeType = button.dataset.time;
-                console.log('📊 Updated currentTimeType:', currentTimeType);
                 
                 // Update widget configuration
                 window.IqamaWidgetConfig.timeType = currentTimeType;
-                console.log('🔧 Updated IqamaWidgetConfig:', window.IqamaWidgetConfig);
                 
                 // Update generated code
                 updateGeneratedCode(window.IqamaWidgetConfig);
@@ -1406,25 +1352,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the existing widget smoothly
                 const existingWidget = document.getElementById('iqama-widget');
                 if (existingWidget) {
-                    console.log('🔄 Updating widget with time type:', currentTimeType);
                     updateTimeTypeSmoothly(existingWidget, currentTimeType);
                 } else {
-                    console.log('❌ No widget found to update');
                 }
             }, 100));
         });
     } else {
-        console.log('❌ No time buttons found');
     }
 
     // Add event listeners to Jumuah buttons
     const jumuahButtons = document.querySelectorAll('.jumuah-button');
-    console.log('🔍 Found Jumuah buttons:', jumuahButtons.length);
     if (jumuahButtons.length > 0) {
         jumuahButtons.forEach((button, index) => {
-            console.log(`🔍 Jumuah button ${index}:`, button.dataset.count);
             button.addEventListener('click', debounce(() => {
-                console.log('🎯 Jumuah button clicked:', button.dataset.count);
                 
                 // Remove active class from all Jumuah buttons
                 jumuahButtons.forEach(btn => btn.classList.remove('active'));
@@ -1434,11 +1374,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update the global variable
                 currentJumuahCount = parseInt(button.dataset.count);
-                console.log('📊 Updated currentJumuahCount:', currentJumuahCount);
                 
                 // Update widget configuration
                 window.IqamaWidgetConfig.jumuahCount = currentJumuahCount;
-                console.log('🔧 Updated IqamaWidgetConfig:', window.IqamaWidgetConfig);
                 
                 // Update generated code
                 updateGeneratedCode(window.IqamaWidgetConfig);
@@ -1446,42 +1384,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the existing widget smoothly
                 const existingWidget = document.getElementById('iqama-widget');
                 if (existingWidget) {
-                    console.log('🔄 Updating widget with Jumuah count:', currentJumuahCount);
                     updateJumuahSectionSmoothly(existingWidget, currentJumuahCount);
                 } else {
-                    console.log('❌ No widget found to update');
                 }
             }, 100));
         });
     } else {
-        console.log('❌ No Jumuah buttons found');
     }
     
-    console.log('✅ Demo initialized');
     
     // Test location validation on page load
     const locationInput = document.getElementById('location');
     if (locationInput) {
-        console.log('🔍 Found location input, testing validation...');
         // Trigger validation for the current value
         setTimeout(async () => {
             const location = locationInput.value.trim();
-            console.log('📍 Testing initial location:', location);
             
             if (location.length >= 2) {
-                const validation = await validateLocation(location);
-                console.log('✅ Initial validation result:', validation);
-                
-                if (validation.isValid) {
-                    locationInput.classList.remove('invalid');
-                    locationInput.classList.add('valid');
-                    document.getElementById('locationError').style.display = 'none';
-                } else {
-                    locationInput.classList.remove('valid');
-                    locationInput.classList.add('invalid');
-                    document.getElementById('locationError').textContent = validation.message;
-                    document.getElementById('locationError').style.display = 'block';
-                }
+                // Location validation removed - just clear any error styling
+                locationInput.classList.remove('invalid');
+                locationInput.classList.add('valid');
+                document.getElementById('locationError').style.display = 'none';
             }
         }, 1000);
     }
@@ -1543,7 +1466,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             labelElement.textContent = `Testing: ${label}`;
             
-            console.log(`📱 Testing widget at ${label} (${width}px)`);
         });
     });
     

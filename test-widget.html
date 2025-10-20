@@ -96,7 +96,6 @@
     </div>
 
     <script>
-        console.log('🚀 Starting widget test...');
         
         // Update status
         function updateStatus(message) {
@@ -116,7 +115,6 @@
             skipAllAPIs: false  // Use caching for optimal performance
         };
         
-        console.log('✅ Widget config set:', window.IqamaWidgetConfig);
         updateStatus('Configuration set, loading widget script...');
         
         // Load the widget script
@@ -124,18 +122,15 @@
         script.src = './iqama-widget-cloud.js';
         
         script.onload = function() {
-            console.log('✅ Widget script loaded successfully');
             updateStatus('Script loaded, creating widget...');
             
             // Check if the widget functions are available
             if (window.createWidget) {
-                console.log('✅ createWidget function found');
                 updateStatus('Creating widget...');
                 
                 // Try to create the widget
                 try {
                     window.createWidget().then(() => {
-                        console.log('✅ Widget created successfully');
                         updateStatus('✅ Widget loaded successfully!');
                         
                         // Move the widget to our container
@@ -144,41 +139,33 @@
                         if (widget && container) {
                             container.innerHTML = '';
                             container.appendChild(widget);
-                            console.log('✅ Widget moved to container');
                         }
                     }).catch(error => {
-                        console.error('❌ Error creating widget:', error);
                         updateStatus('❌ Error creating widget: ' + error.message);
                     });
                 } catch (error) {
-                    console.error('❌ Error calling createWidget:', error);
                     updateStatus('❌ Error calling createWidget: ' + error.message);
                 }
             } else {
-                console.log('❌ createWidget function not found');
                 updateStatus('❌ createWidget function not found in loaded script');
             }
         };
         
         script.onerror = function() {
-            console.error('❌ Failed to load widget script');
             updateStatus('❌ Failed to load widget script');
         };
         
         // Add script to head
         document.head.appendChild(script);
-        console.log('📥 Script tag added to head');
         
         // Monitor for errors
         window.addEventListener('error', function(e) {
-            console.error('❌ Global error:', e.error);
         });
         
         // Check if widget container gets populated
         const checkWidget = setInterval(() => {
             const container = document.getElementById('iqama-widget-container');
             if (container && container.children.length > 1) {
-                console.log('✅ Widget container populated with content');
                 updateStatus('✅ Widget loaded and displayed successfully!');
                 clearInterval(checkWidget);
             }
@@ -188,9 +175,7 @@
         setTimeout(() => {
             clearInterval(checkWidget);
             if (document.getElementById('status').innerHTML.includes('successfully')) {
-                console.log('✅ Widget test completed successfully');
             } else {
-                console.log('⏰ Widget test timed out after 30 seconds');
                 updateStatus('⏰ Widget test timed out - check console for errors');
             }
         }, 30000);
