@@ -88,8 +88,11 @@
             const cached = prayerTimesCache.get(cacheKey);
             if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
                 prayerTimesData = cached.data;
+                console.log('Using cached data, length:', prayerTimesData.length);
                 return;
             }
+            
+            console.log('Fetching fresh data...');
             
             // Try multiple approaches to fetch data
             let csvText = '';
@@ -136,34 +139,39 @@
                 jumuah3: ''
             };
             
-            // First, extract Jumuah times from the first few rows
+            // Extract Jumuah times from specific rows and columns
+            // 1st Jumuah: Row 2 (index 1), Columns J & K (indexes 9 & 10)
+            // 2nd Jumuah: Row 3 (index 2), Columns J & K (indexes 9 & 10)
+            // 3rd Jumuah: Row 4 (index 3), Columns J & K (indexes 9 & 10)
+            
             for (let i = 1; i <= 3; i++) {
                 if (lines[i] && lines[i].trim()) {
                     const values = lines[i].split(',').map(value => {
                         return value.replace(/^"/, '').replace(/"$/, '').trim();
                     });
                     
-                    if (values.length >= 10) {
-                        const jumuahLabel = values[7];  // Column H (0-indexed)
-                        const jumuahStart = values[8];  // Column I (0-indexed) - Starts
-                        const jumuahEnd = values[9];    // Column J (0-indexed) - Ends
+                    if (values.length >= 11) {
+                        const jumuahStart = values[9];  // Column J (0-indexed) - Starts
+                        const jumuahEnd = values[10];   // Column K (0-indexed) - Ends
                         
-                        if (jumuahLabel === '1st Jumuah') {
+                        if (i === 1) {
                             jumuahTimes.jumuah1 = `${jumuahStart} - ${jumuahEnd}`;
-                        } else if (jumuahLabel === '2nd Jumuah') {
+                        } else if (i === 2) {
                             jumuahTimes.jumuah2 = `${jumuahStart} - ${jumuahEnd}`;
-                        } else if (jumuahLabel === '3rd Jumuah') {
+                        } else if (i === 3) {
                             jumuahTimes.jumuah3 = `${jumuahStart} - ${jumuahEnd}`;
                         }
                     }
                 }
             }
             
+            console.log('Extracted Jumuah times:', jumuahTimes);
+            
             // If no Jumuah times found in CSV, use fallback times
             if (!jumuahTimes.jumuah1 && !jumuahTimes.jumuah2 && !jumuahTimes.jumuah3) {
-                jumuahTimes.jumuah1 = '1:30 PM - 2:00 PM';
-                jumuahTimes.jumuah2 = '2:30 PM - 3:00 PM';
-                jumuahTimes.jumuah3 = '3:30 PM - 4:00 PM';
+                jumuahTimes.jumuah1 = '--:-- - --:--';
+                jumuahTimes.jumuah2 = '--:-- - --:--';
+                jumuahTimes.jumuah3 = '--:-- - --:--';
             }
             
             // Then parse daily prayer times (skip the first 3 rows which contain Jumuah data)
@@ -189,6 +197,9 @@
                     }
                 }
             }
+            
+            console.log('Prayer times data array length:', prayerTimesData.length);
+            console.log('First row:', prayerTimesData[0]);
             
             // Cache the data
             prayerTimesCache.set(cacheKey, {
@@ -221,6 +232,11 @@
     
     // Get prayer times for current date and next day if needed
     async function getPrayerTimesForToday() {
+        await fetchPrayerTimes();
+        
+        console.log('getPrayerTimesForToday - prayerTimesData length:', prayerTimesData.length);
+        console.log('getPrayerTimesForToday - first row:', prayerTimesData[0]);
+        
         const today = new Date();
         const currentMonth = today.getMonth() + 1;
         const currentDay = today.getDate();
@@ -255,17 +271,19 @@
                 tomorrowFajr: tomorrowData?.fajr || todayData.fajr
             };
         } else {
-            // Fallback to first row if today not found
+            // Use first row as demo data (January 1st)
+            const demoData = prayerTimesData[0];
+            console.log('Demo data:', demoData);
             prayerTimes = {
-                fajr: prayerTimesData[0]?.fajr || "5:30 AM",
-                dhuhr: prayerTimesData[0]?.dhuhr || "1:30 PM",
-                jumuah1: prayerTimesData[0]?.jumuah1 || "1:31 PM",
-                jumuah2: prayerTimesData[0]?.jumuah2 || "2:30 PM",
-                jumuah3: prayerTimesData[0]?.jumuah3 || "3:30 PM",
-                asr: prayerTimesData[0]?.asr || "4:45 PM",
-                maghrib: prayerTimesData[0]?.maghrib || "7:15 PM",
-                isha: prayerTimesData[0]?.isha || "8:45 PM",
-                tomorrowFajr: prayerTimesData[0]?.fajr || "5:30 AM"
+                fajr: demoData?.fajr || "--:--",
+                dhuhr: demoData?.dhuhr || "--:--",
+                jumuah1: demoData?.jumuah1 || "--:-- - --:--",
+                jumuah2: demoData?.jumuah2 || "--:-- - --:--",
+                jumuah3: demoData?.jumuah3 || "--:-- - --:--",
+                asr: demoData?.asr || "--:--",
+                maghrib: demoData?.maghrib || "--:--",
+                isha: demoData?.isha || "--:--",
+                tomorrowFajr: demoData?.fajr || "--:--"
             };
         }
         
@@ -492,6 +510,7 @@ function getCardColors(backgroundColor) {
     // Create and inject the widget
     async function createWidget() {
         const iqamaTimes = await getPrayerTimesForToday();
+        console.log('iqamaTimes in createWidget:', iqamaTimes);
         const prayerStatus = getPrayerStatus(iqamaTimes);
         
         // Get the current configuration (use window.IqamaWidgetConfig directly)
