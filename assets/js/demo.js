@@ -215,15 +215,25 @@ function updateTimeTypeSmoothly(widget, timeType) {
     // Update the prayer times heading
     const prayerTimesHeading = widget.querySelector('.prayer-times-heading');
     if (prayerTimesHeading) {
-        prayerTimesHeading.textContent = timeType === 'athan' ? 'Athan Times' : 'Iqama Times';
+        if (timeType === 'athan') {
+            prayerTimesHeading.textContent = 'Athan Times';
+        } else if (timeType === 'iqama') {
+            prayerTimesHeading.textContent = 'Iqama Times';
+        } else if (timeType === 'athan and iqama') {
+            prayerTimesHeading.textContent = 'Prayer Times';
+        }
     }
     
     // Update the prayer times description
     const prayerTimesDescription = widget.querySelector('.prayer-times-description');
     if (prayerTimesDescription) {
-        prayerTimesDescription.textContent = timeType === 'athan' ? 
-            'Times shown are when the Athan (call to prayer) is announced' : 
-            'Times shown are when the Iqama (prayer begins) is called';
+        if (timeType === 'athan') {
+            prayerTimesDescription.textContent = 'Times shown are when the Athan (call to prayer) is announced';
+        } else if (timeType === 'iqama') {
+            prayerTimesDescription.textContent = 'Times shown are when the Iqama (prayer begins) is called';
+        } else if (timeType === 'athan and iqama') {
+            prayerTimesDescription.textContent = 'Times shown are when the Athan is announced and Iqama is called';
+        }
     }
     
     // Update the description card styling if it exists
@@ -241,7 +251,13 @@ function updateTimeTypeSmoothly(widget, timeType) {
     // Update the time type display (legacy)
     const timeTypeDisplay = widget.querySelector('.time-type-display');
     if (timeTypeDisplay) {
-        timeTypeDisplay.textContent = timeType === 'athan' ? '🕌 Athan Times' : '🕌 Iqama Times';
+        if (timeType === 'athan') {
+            timeTypeDisplay.textContent = '🕌 Athan Times';
+        } else if (timeType === 'iqama') {
+            timeTypeDisplay.textContent = '🕌 Iqama Times';
+        } else if (timeType === 'athan and iqama') {
+            timeTypeDisplay.textContent = '🕌 Prayer Times';
+        }
     }
     
 

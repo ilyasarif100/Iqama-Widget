@@ -7,15 +7,23 @@
 export const CSV_COLUMNS = {
     MONTH: 0,
     DAY: 1,
-    FAJR: 2,
-    ZUHR: 3,
-    ASR: 4,
-    MAGHRIB: 5,
-    ISHA: 6,
-    EMPTY: 7,        // Empty column
-    JUMAH_LABEL: 8,  // Jumuah label column
-    JUMAH_START: 9,  // Jumuah start time column
-    JUMAH_END: 10    // Jumuah end time column
+    // Athan Times
+    FAJR_ATHAN: 2,
+    ZUHR_ATHAN: 3,
+    ASR_ATHAN: 4,
+    MAGHRIB_ATHAN: 5,
+    ISHA_ATHAN: 6,
+    // Iqama Times
+    FAJR_IQAMA: 7,
+    ZUHR_IQAMA: 8,
+    ASR_IQAMA: 9,
+    MAGHRIB_IQAMA: 10,
+    ISHA_IQAMA: 11,
+    // Jumuah (unchanged)
+    EMPTY: 12,        // Empty column
+    JUMAH_LABEL: 13,  // Jumuah label column
+    JUMAH_START: 14,  // Jumuah start time column
+    JUMAH_END: 15     // Jumuah end time column
 };
 
 // Jumuah Row Indexes (0-based, where 0 is header)
@@ -28,7 +36,8 @@ export const JUMAH_ROWS = {
 // Prayer Types
 export const PRAYER_TYPES = {
     ATHAN: 'athan',
-    IQAMA: 'iqama'
+    IQAMA: 'iqama',
+    BOTH: 'athan and iqama'
 };
 
 

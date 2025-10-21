@@ -32,7 +32,18 @@ export class WidgetRenderer {
     _generateWidgetHTML(prayerTimes, config, textColor) {
         const title = config.title || 'Prayer Times';
         const location = config.location || 'Location';
-        const timeTypeLabel = config.timeType === PRAYER_TYPES.ATHAN ? '🕌 Athan Times' : '🕌 Iqama Times';
+        
+        // Determine time type label based on configuration
+        let timeTypeLabel;
+        if (config.timeType === PRAYER_TYPES.ATHAN) {
+            timeTypeLabel = '🕌 Athan Times';
+        } else if (config.timeType === PRAYER_TYPES.IQAMA) {
+            timeTypeLabel = '🕌 Iqama Times';
+        } else if (config.timeType === PRAYER_TYPES.BOTH) {
+            timeTypeLabel = '🕌 Prayer Times';
+        } else {
+            timeTypeLabel = '🕌 Prayer Times'; // Default fallback
+        }
         
         return `
             <div id="iqama-widget" style="
@@ -206,6 +217,33 @@ export class WidgetRenderer {
                             padding: 16px 14px;
                             min-height: 60px;
                         }
+                        
+                        /* Mobile responsive for dual display */
+                        .prayer-header {
+                            padding: 10px 12px;
+                            font-size: 11px;
+                        }
+                        
+                        .time-headers {
+                            gap: 15px;
+                        }
+                        
+                        .time-header {
+                            min-width: 50px;
+                        }
+                        
+                        .prayer-row {
+                            padding: 12px 14px;
+                        }
+                        
+                        .prayer-times {
+                            gap: 15px;
+                        }
+                        
+                        .time-value {
+                            min-width: 50px;
+                            font-size: 14px;
+                        }
                     }
                     
                     @media (max-width: 360px) {
@@ -230,6 +268,33 @@ export class WidgetRenderer {
                             padding: 14px 12px;
                             min-height: 55px;
                         }
+                        
+                        /* Mobile responsive for dual display - smaller screens */
+                        .prayer-header {
+                            padding: 8px 10px;
+                            font-size: 10px;
+                        }
+                        
+                        .time-headers {
+                            gap: 12px;
+                        }
+                        
+                        .time-header {
+                            min-width: 45px;
+                        }
+                        
+                        .prayer-row {
+                            padding: 10px 12px;
+                        }
+                        
+                        .prayer-times {
+                            gap: 12px;
+                        }
+                        
+                        .time-value {
+                            min-width: 45px;
+                            font-size: 13px;
+                        }
                     }
                     
                     .description-card {
@@ -247,6 +312,61 @@ export class WidgetRenderer {
                         font-size: 14px;
                         color: ${textColor};
                         opacity: 0.8;
+                    }
+                    
+                    /* Dual time display styles */
+                    .prayer-times-table {
+                        width: 100%;
+                    }
+                    
+                    .prayer-header {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 12px 16px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border-radius: 8px;
+                        margin-bottom: 8px;
+                        font-weight: 600;
+                        font-size: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .time-headers {
+                        display: flex;
+                        gap: 20px;
+                    }
+                    
+                    .time-header {
+                        min-width: 60px;
+                        text-align: center;
+                    }
+                    
+                    .prayer-row {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 14px 16px;
+                        margin-bottom: 6px;
+                        background: rgba(255, 255, 255, 0.08);
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
+                    }
+                    
+                    .prayer-row:hover {
+                        background: rgba(255, 255, 255, 0.12);
+                    }
+                    
+                    .prayer-times {
+                        display: flex;
+                        gap: 20px;
+                    }
+                    
+                    .time-value {
+                        min-width: 60px;
+                        text-align: center;
+                        font-size: 15px;
+                        font-weight: 500;
                     }
                 </style>
                 
@@ -273,7 +393,7 @@ export class WidgetRenderer {
                         color: ${textColor};
                     ">${timeTypeLabel}</h3>
                     
-                    ${this._renderPrayerTimes(prayerTimes, textColor)}
+                    ${this._renderPrayerTimes(prayerTimes, textColor, config)}
                 </div>
                 
                 ${this._renderJumuahSection(prayerTimes, config.jumuahCount, textColor)}
@@ -290,24 +410,73 @@ export class WidgetRenderer {
     /**
      * Render prayer times section
      */
-    _renderPrayerTimes(prayerTimes, textColor) {
+    _renderPrayerTimes(prayerTimes, textColor, config) {
         const prayers = [
-            { name: 'Fajr', time: prayerTimes.fajr, icon: '🌅' },
-            { name: 'Dhuhr', time: prayerTimes.dhuhr, icon: '☀️' },
-            { name: 'Asr', time: prayerTimes.asr, icon: '🌤️' },
-            { name: 'Maghrib', time: prayerTimes.maghrib, icon: '🌇' },
-            { name: 'Isha', time: prayerTimes.isha, icon: '🌙' }
+            { name: 'Fajr', icon: '🌅' },
+            { name: 'Dhuhr', icon: '☀️' },
+            { name: 'Asr', icon: '🌤️' },
+            { name: 'Maghrib', icon: '🌇' },
+            { name: 'Isha', icon: '🌙' }
         ];
 
-        return prayers.map(prayer => `
-            <div class="prayer-item">
-                <div class="prayer-info">
-                    <span class="prayer-icon">${prayer.icon}</span>
-                    <span class="prayer-name">${prayer.name}</span>
+        // Check if we have dual time data (athan and iqama)
+        const hasDualTimes = config.timeType === PRAYER_TYPES.BOTH && 
+                            prayerTimes.fajrAthan && prayerTimes.fajrIqama;
+
+        if (hasDualTimes) {
+            // Render dual time display with column headers
+            return `
+                <div class="prayer-times-table">
+                    <div class="prayer-header">
+                        <div class="prayer-name-header">Prayer</div>
+                        <div class="time-headers">
+                            <div class="time-header">Athan</div>
+                            <div class="time-header">Iqama</div>
+                        </div>
+                    </div>
+                    ${prayers.map(prayer => {
+                        const prayerKey = prayer.name.toLowerCase();
+                        const athanTime = prayerTimes[`${prayerKey}Athan`] || prayerTimes[prayerKey] || '--:--';
+                        const iqamaTime = prayerTimes[`${prayerKey}Iqama`] || '--:--';
+                        
+                        return `
+                            <div class="prayer-row">
+                                <div class="prayer-info">
+                                    <span class="prayer-icon">${prayer.icon}</span>
+                                    <span class="prayer-name">${prayer.name}</span>
+                                </div>
+                                <div class="prayer-times">
+                                    <div class="time-value">${athanTime}</div>
+                                    <div class="time-value">${iqamaTime}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
-                <span class="prayer-time">${prayer.time}</span>
-            </div>
-        `).join('');
+            `;
+        } else {
+            // Render single time display (current behavior)
+            return prayers.map(prayer => {
+                const prayerKey = prayer.name.toLowerCase();
+                let time;
+                
+                if (config.timeType === PRAYER_TYPES.IQAMA) {
+                    time = prayerTimes[`${prayerKey}Iqama`] || prayerTimes[prayerKey] || '--:--';
+                } else {
+                    time = prayerTimes[`${prayerKey}Athan`] || prayerTimes[prayerKey] || '--:--';
+                }
+                
+                return `
+                    <div class="prayer-item">
+                        <div class="prayer-info">
+                            <span class="prayer-icon">${prayer.icon}</span>
+                            <span class="prayer-name">${prayer.name}</span>
+                        </div>
+                        <span class="prayer-time">${time}</span>
+                    </div>
+                `;
+            }).join('');
+        }
     }
 
     /**
