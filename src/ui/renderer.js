@@ -264,7 +264,7 @@ export class WidgetRenderer {
         }
 
         const jumuahTimes = [
-            { name: '1st Jumuah', time: prayerTimes.jumuah1 },
+            { name: jumuahCount === 1 ? 'Jumuah Prayer' : '1st Jumuah', time: prayerTimes.jumuah1 },
             { name: '2nd Jumuah', time: prayerTimes.jumuah2 },
             { name: '3rd Jumuah', time: prayerTimes.jumuah3 }
         ].slice(0, jumuahCount);
