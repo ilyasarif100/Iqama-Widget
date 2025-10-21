@@ -1,5 +1,5 @@
 {
-  "name": "iqama-widget",
+  "name": "masjid-tools",
   "version": "2.0.0",
   "description": "A modular, embeddable prayer times widget for Islamic websites",
   "main": "dist/prayer-times-widget.js",

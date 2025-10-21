@@ -1,4 +1,4 @@
-# Iqama Widget v2.0.0 - Modular Prayer Times Widget
+# Masjid Tools v2.0.0 - Modular Prayer Times Widget
 
 A clean, modular, and highly maintainable prayer times widget for Islamic websites. This version has been completely refactored from a monolithic 1,073-line file into a well-organized, modular architecture.
 
