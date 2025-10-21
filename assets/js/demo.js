@@ -48,10 +48,10 @@ function updateWidget() {
 function getCardColors(backgroundColor) {
     const isDark = getContrastingTextColor(backgroundColor) === '#ffffff';
     return {
-        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-        border: isDark ? 'rgba(255, 255, 255, 0.1)' : '#cccccc',
-        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.3)'
+        background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
+        border: isDark ? 'rgba(255, 255, 255, 0.15)' : '#cccccc',
+        borderActive: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.3)'
     };
 }
 
@@ -165,21 +165,11 @@ function createGlassmorphism(backgroundColor, accentColor) {
         // Light background: subtle dark transparency
         return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.85)`;
     } else {
-        // Dark background: subtle light transparency
-        return `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.9)`;
+        // Dark background: use full opacity to maintain rich color
+        return backgroundColor;
     }
 }
 
-// Helper function to get appropriate card colors based on background
-function getCardColors(backgroundColor) {
-    const isDark = getContrastingTextColor(backgroundColor) === '#ffffff';
-    return {
-        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-        backgroundActive: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-        border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-        borderActive: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
-    };
-}
 
 // Smooth time type update function
 function updateTimeTypeSmoothly(widget, timeType) {
