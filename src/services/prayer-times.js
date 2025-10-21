@@ -19,12 +19,12 @@ export class PrayerManager {
     /**
      * Fetch and parse prayer times data
      */
-    async fetchPrayerTimes() {
-        logger.info('Starting prayer times fetch process');
+    async fetchPrayerTimes(forceRefresh = false) {
+        logger.info('Starting prayer times fetch process', { forceRefresh });
         
         try {
-            // Check cache first
-            const cached = this.cacheManager.getPrayerTimes(this.dataFetcher.sheetId);
+            // Check cache first (unless forcing refresh)
+            const cached = this.cacheManager.getPrayerTimes(this.dataFetcher.sheetId, forceRefresh);
             if (cached) {
                 logger.success('Using cached prayer times data');
                 this.prayerTimesData = cached;
@@ -60,8 +60,8 @@ export class PrayerManager {
     /**
      * Get prayer times for a specific date
      */
-    async getPrayerTimesForDate(date = null) {
-        await this.fetchPrayerTimes();
+    async getPrayerTimesForDate(date = null, forceRefresh = false) {
+        await this.fetchPrayerTimes(forceRefresh);
 
         const targetDate = date || getCurrentDateInfo();
         logger.info('Getting prayer times for date', targetDate);

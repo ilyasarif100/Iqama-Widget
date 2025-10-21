@@ -7,7 +7,7 @@ import { logger } from '../utils/logger.js';
 import { createCacheKey } from '../utils/utils.js';
 
 export class CacheManager {
-    constructor(cacheDuration = 10 * 60 * 1000) { // 10 minutes default
+    constructor(cacheDuration = 24 * 60 * 60 * 1000) { // 24 hours default (daily refresh)
         this.cache = new Map();
         this.cacheDuration = cacheDuration;
         this.cleanupInterval = null;
@@ -19,7 +19,7 @@ export class CacheManager {
     /**
      * Get cached data
      */
-    get(key) {
+    get(key, forceRefresh = false) {
         const cached = this.cache.get(key);
         
         if (!cached) {
@@ -27,15 +27,17 @@ export class CacheManager {
             return null;
         }
 
-        const isExpired = (Date.now() - cached.timestamp) > this.cacheDuration;
+        // Check if data is from today (daily refresh logic)
+        const isDataFromToday = this._isDataFromToday(cached.timestamp);
         
-        if (isExpired) {
-            logger.info('Cache expired', key);
+        // If forcing refresh or data is not from today, treat as expired
+        if (forceRefresh || !isDataFromToday) {
+            logger.info(forceRefresh ? 'Force refresh requested' : 'Data not from today', key);
             this.cache.delete(key);
             return null;
         }
 
-        logger.info('Cache hit', key);
+        logger.info('Cache hit (daily data)', key);
         return cached.data;
     }
 
@@ -96,13 +98,22 @@ export class CacheManager {
     }
 
     /**
+     * Check if cached data is from today
+     */
+    _isDataFromToday(timestamp) {
+        const today = new Date().toDateString();
+        const dataDay = new Date(timestamp).toDateString();
+        return today === dataDay;
+    }
+
+    /**
      * Start automatic cleanup interval
      */
     _startCleanupInterval() {
-        // Clean up every 5 minutes
+        // Clean up every hour (less frequent since we're using daily refresh)
         this.cleanupInterval = setInterval(() => {
             this.cleanup();
-        }, 5 * 60 * 1000);
+        }, 60 * 60 * 1000);
     }
 
 }

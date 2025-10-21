@@ -35,15 +35,27 @@ function initializeWidget() {
 /**
  * Global function for backward compatibility
  */
-window.createWidget = async function() {
+window.createWidget = async function(forceRefresh = false) {
     if (!widgetManager) {
         widgetManager = new WidgetManager();
     } else {
         // Update configuration if widget manager already exists
         widgetManager.updateConfig(getConfig());
     }
-    await widgetManager.createWidget();
+    await widgetManager.createWidget(forceRefresh);
     return widgetManager;
+};
+
+/**
+ * Manual refresh function - forces fresh data fetch
+ */
+window.refreshWidget = async function() {
+    logger.info('Manual refresh requested');
+    if (widgetManager) {
+        await widgetManager.createWidget(true); // Force refresh
+    } else {
+        await window.createWidget(true); // Create with force refresh
+    }
 };
 
 

@@ -22,8 +22,8 @@ export const DEFAULT_CONFIG = {
     jumuahCount: 1,
     
     // Performance Configuration
-    cacheDuration: 10 * 60 * 1000, // 10 minutes
-    pollingInterval: 30 * 60 * 1000, // 30 minutes
+    cacheDuration: 24 * 60 * 60 * 1000, // 24 hours (daily refresh)
+    pollingInterval: 24 * 60 * 60 * 1000, // 24 hours (daily refresh)
     
     // Debug Configuration
     debug: false,

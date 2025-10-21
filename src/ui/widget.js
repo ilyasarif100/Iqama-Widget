@@ -65,16 +65,16 @@ export class WidgetManager {
     /**
      * Create and inject the widget
      */
-    async createWidget() {
+    async createWidget(forceRefresh = false) {
         if (!this.isInitialized) {
             await this.initialize();
         }
 
-        logger.info('Creating widget');
+        logger.info('Creating widget', { forceRefresh });
         
         try {
-            // Get prayer times
-            const prayerTimes = await this.prayerManager.getPrayerTimesForToday();
+            // Get prayer times (with optional force refresh)
+            const prayerTimes = await this.prayerManager.getPrayerTimesForToday(forceRefresh);
             
             // Render widget HTML
             const widgetHTML = this.renderer.renderWidget(prayerTimes, this.config);
@@ -185,8 +185,8 @@ export class WidgetManager {
 }
 
 // Global function for backward compatibility
-export async function createWidget() {
+export async function createWidget(forceRefresh = false) {
     const manager = new WidgetManager();
-    await manager.createWidget();
+    await manager.createWidget(forceRefresh);
     return manager;
 }
