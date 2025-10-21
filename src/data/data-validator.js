@@ -44,7 +44,7 @@ export class DataValidator {
      * Validate prayer data for a specific day
      */
     validatePrayerData(prayerData) {
-        logger.debug('Validating prayer data for day', prayerData);
+        logger.info('Validating prayer data for day', prayerData);
         
         if (!prayerData) {
             logger.error('Prayer data is null or undefined');
@@ -77,7 +77,7 @@ export class DataValidator {
             return false;
         }
 
-        logger.debug('Prayer data validation passed');
+        logger.info('Prayer data validation passed');
         return true;
     }
 

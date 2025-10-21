@@ -145,7 +145,7 @@ export class PrayerManager {
      * Get prayer status (current/next prayer)
      */
     getPrayerStatus(prayerTimes) {
-        logger.debug('Calculating prayer status');
+        logger.info('Calculating prayer status');
         
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -183,7 +183,7 @@ export class PrayerManager {
             nextPrayerTime: nextPrayer?.time || prayers[0].time
         };
 
-        logger.debug('Prayer status calculated', status);
+        logger.info('Prayer status calculated', status);
         return status;
     }
 

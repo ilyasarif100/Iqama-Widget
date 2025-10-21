@@ -15,7 +15,7 @@ export function extractSheetId(url) {
         return null;
     }
 
-    logger.debug('Extracting Sheet ID from URL', url);
+    logger.info('Extracting Sheet ID from URL', url);
 
     for (let pattern of SHEET_URL_PATTERNS) {
         const match = url.match(pattern);

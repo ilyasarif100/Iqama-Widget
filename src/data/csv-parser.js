@@ -71,7 +71,7 @@ export class DataParser {
                             this.jumuahTimes.jumuah3 = jumuahTime;
                         }
                         
-                        logger.debug(`Parsed Jumuah ${i}`, jumuahTime);
+                        logger.info(`Parsed Jumuah ${i}`, jumuahTime);
                     }
                 }
             }

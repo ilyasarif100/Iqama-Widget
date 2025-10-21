@@ -23,19 +23,19 @@ export class CacheManager {
         const cached = this.cache.get(key);
         
         if (!cached) {
-            logger.debug('Cache miss', key);
+            logger.info('Cache miss', key);
             return null;
         }
 
         const isExpired = (Date.now() - cached.timestamp) > this.cacheDuration;
         
         if (isExpired) {
-            logger.debug('Cache expired', key);
+            logger.info('Cache expired', key);
             this.cache.delete(key);
             return null;
         }
 
-        logger.debug('Cache hit', key);
+        logger.info('Cache hit', key);
         return cached.data;
     }
 
@@ -49,7 +49,7 @@ export class CacheManager {
         };
 
         this.cache.set(key, cacheEntry);
-        logger.debug('Data cached', key);
+        logger.info('Data cached', key);
     }
 
     /**
@@ -91,7 +91,7 @@ export class CacheManager {
         }
 
         if (cleanedCount > 0) {
-            logger.debug(`Cleaned up ${cleanedCount} expired cache entries`);
+            logger.info(`Cleaned up ${cleanedCount} expired cache entries`);
         }
     }
 
