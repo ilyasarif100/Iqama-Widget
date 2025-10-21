@@ -108,48 +108,88 @@ export class WidgetRenderer {
                     
                     .jumuah-timeline {
                         display: flex;
-                        gap: 8px;
-                        margin-top: 12px;
+                        gap: 10px;
+                        margin-top: 16px;
                         flex-wrap: wrap;
+                        justify-content: center;
                     }
                     
                     .jumuah-slot {
                         flex: 1;
                         min-width: 140px;
+                        min-height: 60px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
                         text-align: center;
-                        padding: 8px 6px;
+                        padding: 10px 8px;
                         background: ${this.cardColors.backgroundActive};
                         border: 1px solid ${this.cardColors.border};
                         border-radius: 8px;
                     }
                     
                     .jumuah-label {
-                        font-size: 14px;
-                        font-weight: 600;
+                        font-size: 13px;
+                        font-weight: 500;
                         color: ${textColor};
-                        margin-bottom: 4px;
+                        margin-bottom: 6px;
+                        line-height: 1.2;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                         white-space: nowrap;
+                        max-width: 100%;
                     }
                     
                     .jumuah-time {
-                        font-size: 16px;
+                        font-size: 17px;
                         font-weight: 700;
                         color: ${textColor};
+                        line-height: 1.1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                         white-space: nowrap;
+                        max-width: 100%;
                     }
                     
                     @media (max-width: 480px) {
                         .jumuah-timeline {
                             flex-direction: column;
+                            gap: 6px;
                         }
                         
                         .jumuah-slot {
                             min-width: auto;
+                            min-height: 50px;
+                            padding: 8px 6px;
+                        }
+                        
+                        .jumuah-label {
+                            font-size: 12px;
+                            margin-bottom: 4px;
                         }
                         
                         .jumuah-time {
-                            white-space: normal;
-                            text-overflow: unset;
+                            font-size: 16px;
+                        }
+                    }
+                    
+                    @media (max-width: 360px) {
+                        .jumuah-timeline {
+                            gap: 4px;
+                        }
+                        
+                        .jumuah-slot {
+                            min-height: 45px;
+                            padding: 6px 4px;
+                        }
+                        
+                        .jumuah-label {
+                            font-size: 11px;
+                        }
+                        
+                        .jumuah-time {
+                            font-size: 15px;
                         }
                     }
                     
