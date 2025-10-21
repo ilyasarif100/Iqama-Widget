@@ -235,7 +235,7 @@
 
 .buttons .btn-primary {
     background: #1a1a1a;
-    color: #fff;
+    color: #fff !important;
 }
 
 .buttons .btn-primary:hover {
@@ -295,6 +295,10 @@
 
 .setup-instructions a:hover {
     text-decoration: underline;
+}
+
+.setup-instructions .btn {
+    color: inherit !important;
 }
 
 .template-download {
