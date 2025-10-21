@@ -51,33 +51,6 @@ class Logger {
         }
     }
 
-    /**
-     * Log data flow messages (for tracing data through the system)
-     */
-    dataFlow(section, message, data = null) {
-        if (this.config.debug && this.config.logLevel === 'verbose') {
-            console.log(`📊 [${section}] ${message}`, data || '');
-        }
-    }
-
-    /**
-     * Log performance metrics
-     */
-    performance(operation, duration, data = null) {
-        if (this.config.debug && this.config.logLevel !== 'minimal') {
-            console.log(`⚡ [PERF] ${operation} took ${duration}ms`, data || '');
-        }
-    }
-
-    /**
-     * Log validation results
-     */
-    validation(message, isValid, data = null) {
-        const icon = isValid ? '✅' : '❌';
-        if (this.config.debug && this.config.logLevel !== 'minimal') {
-            console.log(`${icon} [VALIDATION] ${message}`, data || '');
-        }
-    }
 }
 
 // Create singleton instance

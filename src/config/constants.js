@@ -31,17 +31,6 @@ export const PRAYER_TYPES = {
     IQAMA: 'iqama'
 };
 
-// Prayer Names
-export const PRAYER_NAMES = {
-    FAJR: 'fajr',
-    ZUHR: 'dhuhr',
-    ASR: 'asr',
-    MAGHRIB: 'maghrib',
-    ISHA: 'isha',
-    JUMAH1: 'jumuah1',
-    JUMAH2: 'jumuah2',
-    JUMAH3: 'jumuah3'
-};
 
 // Fallback Values
 export const FALLBACK_VALUES = {
@@ -58,7 +47,3 @@ export const SHEET_URL_PATTERNS = [
     /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/view/
 ];
 
-// Cache Keys
-export const CACHE_KEYS = {
-    PRAYER_TIMES: 'prayer_times'
-};

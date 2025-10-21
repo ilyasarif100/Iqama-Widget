@@ -182,40 +182,6 @@ export class WidgetManager {
         }
     }
 
-    /**
-     * Refresh widget data
-     */
-    async refreshWidget() {
-        logger.info('Manually refreshing widget');
-        
-        try {
-            await this.prayerManager.refreshData();
-            await this.createWidget();
-        } catch (error) {
-            logger.error('Widget refresh failed', error.message);
-            throw error;
-        }
-    }
-
-    /**
-     * Destroy widget and cleanup
-     */
-    destroy() {
-        logger.info('Destroying widget manager');
-        
-        if (this.cacheManager) {
-            this.cacheManager.destroy();
-        }
-        
-        // Remove widget from DOM
-        const widget = document.getElementById('iqama-widget');
-        if (widget) {
-            widget.remove();
-        }
-        
-        this.isInitialized = false;
-        logger.info('Widget manager destroyed');
-    }
 }
 
 // Global function for backward compatibility

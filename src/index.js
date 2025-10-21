@@ -46,27 +46,6 @@ window.createWidget = async function() {
     return widgetManager;
 };
 
-/**
- * Global function to refresh widget
- */
-window.refreshWidget = async function() {
-    if (widgetManager) {
-        await widgetManager.refreshWidget();
-    } else {
-        logger.warn('Widget manager not initialized');
-    }
-};
-
-/**
- * Global function to update configuration
- */
-window.updateWidgetConfig = function(newConfig) {
-    if (widgetManager) {
-        widgetManager.updateConfig(newConfig);
-    } else {
-        logger.warn('Widget manager not initialized');
-    }
-};
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {

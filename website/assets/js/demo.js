@@ -18,7 +18,6 @@ window.IqamaWidgetConfig = {
     location: 'Phoenix, United States',
     backgroundColor: '#1a1a1a',
     accentColor: '#ffffff',
-    borderRadius: '20px',
     timeType: 'athan',
     jumuahCount: 1
 };
@@ -366,6 +365,26 @@ function updateJumuahSectionSmoothly(widget, jumuahCount) {
     
 }
 
+// Predefined color schemes from the demo
+const predefinedSchemes = {
+    'Dark': { background: '#1a1a1a', accent: '#ffffff' },
+    'Light': { background: '#ffffff', accent: '#000000' },
+    'Blue': { background: '#0f172a', accent: '#60a5fa' },
+    'Purple': { background: '#1e1b4b', accent: '#a855f7' },
+    'Green': { background: '#064e3b', accent: '#10b981' },
+    'Red': { background: '#7f1d1d', accent: '#ef4444' }
+};
+
+// Check if colors match a predefined scheme
+function getSchemeName(backgroundColor, accentColor) {
+    for (const [name, scheme] of Object.entries(predefinedSchemes)) {
+        if (scheme.background === backgroundColor && scheme.accent === accentColor) {
+            return name;
+        }
+    }
+    return null;
+}
+
 // Update generated code display
 function updateGeneratedCode(config) {
     // Safety check for undefined config
@@ -377,12 +396,12 @@ function updateGeneratedCode(config) {
             backgroundColor: '#1a1a1a',
             accentColor: '#ffffff',
             timeType: 'athan',
-            jumuahCount: 1,
-            webhookUrl: '',
-            webhookSecret: '',
-            masjidAddress: 'Phoenix, United States'
+            jumuahCount: 1
         };
     }
+    
+    // Check if current colors match a predefined scheme
+    const schemeName = getSchemeName(config.backgroundColor, config.accentColor);
     
     const code = `<!-- Prayer Times Widget -->
 <div id="iqama-widget-container"></div>
@@ -393,20 +412,19 @@ window.IqamaWidgetConfig = {
     googleSheetUrl: '${config.googleSheetUrl || ''}',
     title: '${config.title || ''}',
     location: '${config.location || ''}',
-    masjidAddress: '${config.masjidAddress || ''}',
     backgroundColor: '${config.backgroundColor || '#1a1a1a'}',
     accentColor: '${config.accentColor || '#ffffff'}',
-    borderRadius: '20px',
     timeType: '${config.timeType || 'athan'}',
-    jumuahCount: ${config.jumuahCount || 1},
-    // Speed optimizations
-    skipSunriseAPI: true,
-    fallbackSunrise: '6:01 AM'
+    jumuahCount: ${config.jumuahCount || 1}
 };
+
+// Color scheme: ${schemeName || 'Custom (not recommended)'}
+// Available schemes: Dark, Light, Blue, Purple, Green, Red
+// Note: Only predefined color schemes are supported for best results
 
 // Load the widget script
 const script = document.createElement('script');
-script.src = 'https://ilyasarif100.github.io/Iqama-Widget/iqama-widget-cloud.js';
+        script.src = 'https://masjidtools.com/prayer-times-widget.js';
 document.head.appendChild(script);
 </script>`;
     
@@ -505,7 +523,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // ========================================
-// LOCATION SEARCH & SUNRISE API
+// LOCATION SEARCH
 // ========================================
 
 // Global variables for location handling
@@ -1024,8 +1042,7 @@ async function selectCity(cityElement) {
     window.IqamaWidgetConfig.masjidAddress = currentLocationData.displayName;
     await updateWidget();
     
-    // Fetch sunrise time for the selected city and update UI
-    await fetchSunriseTime(lat, lng);
+    // Location updated successfully
 }
 
 // Fetch timezone by coordinates (no API key)
@@ -1042,107 +1059,6 @@ async function getTimeZoneByCoordinates(lat, lng) {
     return undefined;
 }
 
-// Fetch sunrise time from weather API
-async function fetchSunriseTime(lat, lng) {
-    try {
-        
-        // Primary API: Sunrise-Sunset with optimized parameters
-        const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&formatted=0&tzid=auto`, {
-            headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'IqamaWidget/1.0'
-            }
-        });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        
-        if (data.status === 'OK' && data.results.sunrise) {
-            const sunriseUTC = new Date(data.results.sunrise); // UTC ISO string
-            
-            // Get timezone with fallback methods
-            let timeZoneId;
-            try {
-                // Method 1: TimeAPI.io (fastest)
-                const tzResp = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`, {
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (tzResp.ok) {
-                    const tzData = await tzResp.json();
-                    timeZoneId = tzData && (tzData.timeZone || tzData.timezone || tzData.time_zone);
-                }
-            } catch (e) {
-            }
-
-            // Method 2: Browser timezone fallback
-            if (!timeZoneId) {
-                timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            }
-            
-            const localTime = new Intl.DateTimeFormat('en-US', {
-                timeZone: timeZoneId,
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            }).format(sunriseUTC);
-            
-            updateSunriseInWidget(localTime);
-            return localTime;
-        } else {
-            updateSunriseInWidget('N/A');
-            return 'N/A';
-        }
-    } catch (error) {
-        
-        // Fallback: Calculate approximate sunrise
-        try {
-            const approximateSunrise = calculateApproximateSunrise(lat, lng);
-            updateSunriseInWidget(approximateSunrise);
-            return approximateSunrise;
-        } catch (e) {
-            updateSunriseInWidget('N/A');
-            return 'N/A';
-        }
-    }
-}
-
-// Approximate sunrise calculation as backup
-function calculateApproximateSunrise(lat, lng) {
-    const now = new Date();
-    const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
-    
-    // Simplified sunrise calculation based on latitude and day of year
-    const latRad = lat * Math.PI / 180;
-    const declination = 23.45 * Math.sin((284 + dayOfYear) * Math.PI / 180);
-    const hourAngle = Math.acos(-Math.tan(latRad) * Math.tan(declination * Math.PI / 180));
-    const sunriseHour = 12 - (hourAngle * 12 / Math.PI);
-    
-    const hours = Math.floor(sunriseHour);
-    const minutes = Math.floor((sunriseHour - hours) * 60);
-    
-    const time = new Date();
-    time.setHours(hours, minutes, 0, 0);
-    
-    return time.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
-}
-
-// Update sunrise time in the widget
-function updateSunriseInWidget(sunriseTime) {
-    const widget = document.getElementById('iqama-widget');
-    if (widget) {
-        const sunriseElement = widget.querySelector('[data-prayer="sunrise"]');
-        if (sunriseElement) {
-            const timeElement = sunriseElement.querySelector('div:last-child');
-            if (timeElement) {
-                timeElement.textContent = sunriseTime;
-            }
-        }
-    }
-}
 
 // Initialize location search functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -1230,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize with default location
         setTimeout(async () => {
-            await fetchSunriseTime(currentLocationData.lat, currentLocationData.lng);
+            // Location updated successfully
         }, 1000);
     }
 });

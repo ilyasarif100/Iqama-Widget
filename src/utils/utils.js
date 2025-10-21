@@ -43,33 +43,6 @@ export function parseCSVLine(line) {
     });
 }
 
-/**
- * Format time string (adds AM/PM if missing)
- */
-export function formatTime(timeString) {
-    if (!timeString || timeString === '--:--') {
-        return timeString;
-    }
-
-    // If already has AM/PM, return as is
-    if (timeString.includes('AM') || timeString.includes('PM')) {
-        return timeString;
-    }
-
-    // Add AM/PM based on hour
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    
-    if (hour === 0) {
-        return `12:${minutes} AM`;
-    } else if (hour < 12) {
-        return `${hour}:${minutes} AM`;
-    } else if (hour === 12) {
-        return `12:${minutes} PM`;
-    } else {
-        return `${hour - 12}:${minutes} PM`;
-    }
-}
 
 /**
  * Get current date info
@@ -110,31 +83,3 @@ export function createCacheKey(sheetId) {
     return `prayer_times_${sheetId}`;
 }
 
-/**
- * Debounce function to limit function calls
- */
-export function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
- * Throttle function to limit function calls
- */
-export function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
-}

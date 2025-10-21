@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Masjid Tools</title>
+    <meta name="description" content="Try our interactive prayer times widget demo. Customize colors, settings, and see live preview.">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/demo.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html" style="text-decoration: none; color: inherit;">
+                    <h1>Masjid Tools</h1>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="demo.html" class="nav-link active">Demo</a>
+                <a href="docs.html" class="nav-link">Documentation</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Demo Section -->
+    <section class="demo-section">
+        <div class="container">
+            <div class="demo-header">
+                <h1>Interactive Demo</h1>
+                <p>Customize your prayer times widget and see live preview. Copy the generated code to embed on your website.</p>
+            </div>
+            
+            <div class="demo-container">
+                <div class="demo-preview">
+                    <h3>Live Preview</h3>
+                    <p class="preview-note">Resize your browser window to test the widget's responsiveness</p>
+                    
+                    <div id="iqama-widget-container">
+                        <!-- Widget will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="controls-section">
+                    <h2>Configuration</h2>
+                    <div class="controls">
+                        <div class="control-group">
+                            <h3>📝 Basic Settings</h3>
+                            <div class="form-row">
+                                <div class="form-item">
+                                    <label for="title">Masjid Name</label>
+                                    <input type="text" id="title" value="Masjid Al-Noor" placeholder="Enter masjid name">
+                                </div>
+                                <div class="form-item">
+                                    <label for="location">Location</label>
+                                    <div class="location-search-container">
+                                        <input type="text" id="location" value="Phoenix, United States" placeholder="Search for a city..." autocomplete="off">
+                                        <div id="locationSuggestions" class="location-suggestions" style="display: none;"></div>
+                                    </div>
+                                    <div class="info-text">Location for display purposes</div>
+                                    <div id="locationError" class="location-error" style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label for="googleSheetUrl">Google Sheet URL</label>
+                                <input type="text" id="googleSheetUrl" value="https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing" placeholder="Enter Google Sheet URL">
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <h3>🎨 Color Scheme</h3>
+                            <div class="color-schemes">
+                                <div class="scheme-option active" data-background="#1a1a1a" data-accent="#ffffff" onclick="selectColorScheme(this)">
+                                    <div class="scheme-preview" style="background: #1a1a1a; border-color: #ffffff;"></div>
+                                    <span>Dark</span>
+                                </div>
+                                <div class="scheme-option" data-background="#ffffff" data-accent="#000000" onclick="selectColorScheme(this)">
+                                    <div class="scheme-preview" style="background: #ffffff; border-color: #000000;"></div>
+                                    <span>Light</span>
+                                </div>
+                                <div class="scheme-option" data-background="#0f172a" data-accent="#60a5fa" onclick="selectColorScheme(this)">
+                                    <div class="scheme-preview" style="background: #0f172a; border-color: #60a5fa;"></div>
+                                    <span>Blue</span>
+                                </div>
+                                <div class="scheme-option" data-background="#1e1b4b" data-accent="#a855f7" onclick="selectColorScheme(this)">
+                                    <div class="scheme-preview" style="background: #1e1b4b; border-color: #a855f7;"></div>
+                                    <span>Purple</span>
+                                </div>
+                                <div class="scheme-option" data-background="#064e3b" data-accent="#10b981" onclick="selectColorScheme(this)">
+                                    <div class="scheme-preview" style="background: #064e3b; border-color: #10b981;"></div>
+                                    <span>Green</span>
+                                </div>
+                                <div class="scheme-option" data-background="#7f1d1d" data-accent="#ef4444" onclick="selectColorScheme(this)">
+                                    <div class="scheme-preview" style="background: #7f1d1d; border-color: #ef4444;"></div>
+                                    <span>Red</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <h3>⏰ Time Type</h3>
+                            <div class="button-group">
+                                <button class="time-button active" data-time="athan">
+                                    <div>🕌 Athan Times</div>
+                                    <div class="button-description">Show when the call to prayer is announced</div>
+                                </button>
+                                <button class="time-button" data-time="iqama">
+                                    <div>🕌 Iqama Times</div>
+                                    <div class="button-description">Show when the prayer begins</div>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <h3>🕌 Jumuah Prayers</h3>
+                            <div class="button-group">
+                                <button class="jumuah-button active" data-count="1">
+                                    <div>1 Jumuah</div>
+                                    <div class="button-description">Single Friday prayer time</div>
+                                </button>
+                                <button class="jumuah-button" data-count="2">
+                                    <div>2 Jumuahs</div>
+                                    <div class="button-description">Two Friday prayer times</div>
+                                </button>
+                                <button class="jumuah-button" data-count="3">
+                                    <div>3 Jumuahs</div>
+                                    <div class="button-description">Three Friday prayer times</div>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="buttons">
+                            <button class="btn btn-primary" onclick="updateWidget()">Update Widget</button>
+                            <button class="btn btn-secondary" onclick="copyConfig()">Copy Code</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Setup Instructions -->
+    <section class="setup-section">
+        <div class="container">
+            <h2 class="section-title">Setup Instructions</h2>
+            <div class="setup-container">
+                <div class="setup-instructions">
+                    <h4>📋 Quick Setup Guide</h4>
+                    <ol>
+                        <li><strong>Download our template:</strong> <a href="../prayer-times-calendar.csv" download>Download CSV Template</a></li>
+                        <li><strong>Import to Google Sheets:</strong> Create a new Google Sheet and import our template</li>
+                        <li><strong>Make it public:</strong> Share your Google Sheet and set it to "Anyone with the link can view"</li>
+                        <li><strong>Copy the embed code:</strong> Use the demo above to customize your widget and copy the generated code</li>
+                        <li><strong>Add to your website:</strong> Paste the code into your website's HTML</li>
+                    </ol>
+                    
+                    <div class="template-download">
+                        <h4>📥 Template Features</h4>
+                        <ul>
+                            <li>Color-coded by months for easy organization</li>
+                            <li>Separate Jumuah times section (columns J-K)</li>
+                            <li>Automatic date detection</li>
+                            <li>Works with any time format (12/24 hour)</li>
+                        </ul>
+                        <a href="../prayer-times-calendar.csv" download class="btn btn-primary">Download Template</a>
+                    </div>
+                </div>
+                
+                <div class="code-box" id="generatedCode">
+                    <!-- Generated code will appear here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Load the widget script -->
+    <script src="../dist/prayer-times-widget.js?v=3"></script>
+    
+    <!-- Load the demo script -->
+    <script src="assets/js/demo.js?v=2"></script>
+</body>
+</html>

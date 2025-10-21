@@ -105,38 +105,4 @@ export class CacheManager {
         }, 5 * 60 * 1000);
     }
 
-    /**
-     * Stop cleanup interval
-     */
-    destroy() {
-        if (this.cleanupInterval) {
-            clearInterval(this.cleanupInterval);
-            this.cleanupInterval = null;
-        }
-        this.clear();
-    }
-
-    /**
-     * Get cache statistics
-     */
-    getStats() {
-        const now = Date.now();
-        let validEntries = 0;
-        let expiredEntries = 0;
-
-        for (let [key, value] of this.cache.entries()) {
-            if ((now - value.timestamp) > this.cacheDuration) {
-                expiredEntries++;
-            } else {
-                validEntries++;
-            }
-        }
-
-        return {
-            totalEntries: this.cache.size,
-            validEntries,
-            expiredEntries,
-            cacheDuration: this.cacheDuration
-        };
-    }
 }
