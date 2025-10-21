@@ -424,7 +424,7 @@ window.IqamaWidgetConfig = {
 
 // Load the widget script
 const script = document.createElement('script');
-        script.src = 'https://ilyasarif100.github.io/Iqama-Widget/dist/prayer-times-widget.js';
+        script.src = 'https://ilyasarif100.github.io/Masjid-Tools/dist/prayer-times-widget.js';
 document.head.appendChild(script);
 </script>`;
     

@@ -36,10 +36,10 @@ website/
 
 ## Current Status
 
-Currently using GitHub Pages URL: `https://ilyasarif100.github.io/Iqama-Widget/`
+Currently using GitHub Pages URL: `https://ilyasarif100.github.io/Masjid-Tools/`
 
 ## Future Custom Domain
 
 When `masjidtools.com` is set up, update all references from:
-- `https://ilyasarif100.github.io/Iqama-Widget/dist/prayer-times-widget.js` → `https://masjidtools.com/prayer-times-widget.js`
-- `https://ilyasarif100.github.io/Iqama-Widget/prayer-times-calendar.csv` → `https://masjidtools.com/prayer-times-calendar.csv`
+- `https://ilyasarif100.github.io/Masjid-Tools/dist/prayer-times-widget.js` → `https://masjidtools.com/prayer-times-widget.js`
+- `https://ilyasarif100.github.io/Masjid-Tools/prayer-times-calendar.csv` → `https://masjidtools.com/prayer-times-calendar.csv`
