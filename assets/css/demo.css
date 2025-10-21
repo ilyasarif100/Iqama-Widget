@@ -327,6 +327,15 @@
 .template-download .btn {
     margin-top: 15px;
     display: inline-block;
+    color: #fff !important;
+    background: #1a1a1a !important;
+}
+
+/* Override any link styling for buttons */
+.setup-instructions .btn,
+.template-download .btn {
+    color: #fff !important;
+    background: #1a1a1a !important;
 }
 
 /* Code Box */
