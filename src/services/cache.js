@@ -7,7 +7,7 @@ import { logger } from '../utils/logger.js';
 import { createCacheKey } from '../utils/utils.js';
 
 export class CacheManager {
-    constructor(cacheDuration = 24 * 60 * 60 * 1000) { // 24 hours default (daily refresh)
+    constructor(cacheDuration = 0) { // No caching for development
         this.cache = new Map();
         this.cacheDuration = cacheDuration;
         this.cleanupInterval = null;
