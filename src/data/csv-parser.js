@@ -20,7 +20,7 @@ export class DataParser {
         logger.info('Starting CSV parsing');
         
         const lines = csvText.split('\n');
-        logger.dataFlow('PARSER', 'CSV split into lines', lines.length);
+        logger.info('CSV split into lines', lines.length);
 
         // First, extract Jumuah times from specific rows
         this._parseJumuahTimes(lines);
