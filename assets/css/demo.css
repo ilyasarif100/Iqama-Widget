@@ -449,43 +449,9 @@
     text-decoration: underline;
 }
 
-/* Remove this rule to let buttons use their proper styling */
-
-.template-download {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-}
-
-.template-download h4 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 15px;
-}
-
-.template-download ul {
-    margin-bottom: 20px;
-}
-
-.template-download li {
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #666;
-}
-
-/* Ensure buttons in template-download use the same styling as main buttons */
-.template-download .btn {
-    margin-top: 15px;
-    display: inline-block;
-    color: #fff !important;
-    background: #1a1a1a !important;
-}
 
 /* Override any link styling for buttons */
-.setup-instructions .btn,
-.template-download .btn {
+.setup-instructions .btn {
     color: #fff !important;
     background: #1a1a1a !important;
 }
