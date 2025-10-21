@@ -4,6 +4,25 @@ let currentJumuahCount = 1;
 let currentBackgroundColor = '#1a1a1a';
 let currentAccentColor = '#ffffff';
 
+// Accordion functionality
+function toggleAccordion(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.accordion-icon');
+    
+    // Toggle active class on header
+    header.classList.toggle('active');
+    
+    // Toggle active class on content
+    content.classList.toggle('active');
+    
+    // Update icon rotation
+    if (content.classList.contains('active')) {
+        icon.textContent = '−';
+    } else {
+        icon.textContent = '+';
+    }
+}
+
 // Input elements
 const inputs = {
     title: document.getElementById('title') || { value: 'Masjid Al-Noor' },
