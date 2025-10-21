@@ -72,13 +72,8 @@ function updateColorsSmoothly(widget, backgroundColor, accentColor) {
     widget.style.setProperty('--background-color', backgroundColor);
     widget.style.setProperty('--accent-color', textColor);
     
-    // Update all elements with inline color styles to use white or black
-    const allElements = widget.querySelectorAll('*');
-    allElements.forEach(element => {
-        if (element.style && element.style.color) {
-            element.style.color = textColor;
-        }
-    });
+    // Don't override text colors - let the widget handle this correctly
+    // The widget renderer now calculates proper contrasting text colors
     
     // Update card colors for prayer items
     const cardColors = getCardColors(backgroundColor);
@@ -491,10 +486,9 @@ function selectColorScheme(element) {
     // Update generated code
     updateGeneratedCode(window.IqamaWidgetConfig);
     
-    // Update the existing widget smoothly
-    const existingWidget = document.getElementById('iqama-widget');
-    if (existingWidget) {
-        updateColorsSmoothly(existingWidget, currentBackgroundColor, currentAccentColor);
+    // Recreate the widget with new colors to ensure proper text color calculation
+    if (window.createWidget) {
+        window.createWidget();
     }
 }
 
