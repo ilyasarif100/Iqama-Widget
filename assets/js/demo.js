@@ -259,6 +259,16 @@ function updateJumuahSectionSmoothly(widget, jumuahCount) {
             ">${currentTimes.jumuah1}</div>
         `;
     } else {
+        // Get current background color to determine if dark or light mode
+        const currentConfig = window.IqamaWidgetConfig || {};
+        const currentBgColor = currentConfig.backgroundColor || '#1a1a1a';
+        const isDark = getContrastingTextColor(currentBgColor) === '#ffffff';
+        
+        // Use dynamic colors based on theme
+        const containerBg = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)';
+        const containerBorder = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)';
+        const labelColor = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+        
         newJumuahHTML = `
             <div style="
                 color: ${accentColor};
@@ -278,12 +288,12 @@ function updateJumuahSectionSmoothly(widget, jumuahCount) {
                 ${[1, 2, 3].slice(0, jumuahCount).map(num => `
                     <div style="
                         padding: 16px;
-                        background: rgba(255, 255, 255, 0.1);
+                        background: ${containerBg};
                         border-radius: 12px;
-                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border: 1px solid ${containerBorder};
                     ">
                         <div style="
-                            color: rgba(255, 255, 255, 0.8);
+                            color: ${labelColor};
                             font-size: 14px;
                             font-weight: 500;
                             margin-bottom: 8px;
