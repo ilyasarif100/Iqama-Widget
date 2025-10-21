@@ -140,8 +140,6 @@
 
     <!-- Load Widget for Preview -->
     <script>
-        console.log('Setting up widget configuration...');
-        
         // Widget configuration for preview
         window.IqamaWidgetConfig = {
             googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
@@ -153,17 +151,9 @@
             jumuahCount: 2
         };
 
-        console.log('Widget config set:', window.IqamaWidgetConfig);
-
         // Load the widget script
         const script = document.createElement('script');
         script.src = 'dist/prayer-times-widget.js';
-        script.onload = function() {
-            console.log('Widget script loaded successfully');
-        };
-        script.onerror = function() {
-            console.error('Failed to load widget script');
-        };
         document.head.appendChild(script);
     </script>
 </body>
