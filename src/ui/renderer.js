@@ -61,23 +61,36 @@ export class WidgetRenderer {
                         width: 100%;
                         box-sizing: border-box;
                         margin: 0 auto;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent;
                     }
                     
                     .prayer-item {
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
-                        padding: 10px 12px;
-                        margin-bottom: 6px;
+                        padding: 14px 16px;
+                        margin-bottom: 8px;
                         background: ${this.cardColors.backgroundActive};
                         border: 1px solid ${this.cardColors.border};
-                        border-radius: 8px;
+                        border-radius: 12px;
                         transition: all 0.2s ease;
+                        min-height: 56px;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent;
+                        cursor: pointer;
+                        user-select: none;
                     }
                     
-                    .prayer-item:hover {
+                    .prayer-item:hover,
+                    .prayer-item:active {
                         background: ${this.cardColors.background};
                         border-color: ${this.cardColors.borderActive};
+                        transform: scale(0.98);
+                    }
+                    
+                    .prayer-item:active {
+                        transform: scale(0.95);
                     }
                     
                     .prayer-info {
@@ -117,16 +130,32 @@ export class WidgetRenderer {
                     .jumuah-slot {
                         flex: 1;
                         min-width: 140px;
-                        min-height: 60px;
+                        min-height: 70px;
                         display: flex;
                         flex-direction: column;
                         justify-content: center;
                         align-items: center;
                         text-align: center;
-                        padding: 10px 8px;
+                        padding: 12px 10px;
                         background: ${this.cardColors.backgroundActive};
                         border: 1px solid ${this.cardColors.border};
-                        border-radius: 8px;
+                        border-radius: 12px;
+                        transition: all 0.2s ease;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent;
+                        cursor: pointer;
+                        user-select: none;
+                    }
+                    
+                    .jumuah-slot:hover,
+                    .jumuah-slot:active {
+                        background: ${this.cardColors.background};
+                        border-color: ${this.cardColors.borderActive};
+                        transform: scale(0.98);
+                    }
+                    
+                    .jumuah-slot:active {
+                        transform: scale(0.95);
                     }
                     
                     .jumuah-label {
@@ -155,13 +184,13 @@ export class WidgetRenderer {
                     @media (max-width: 480px) {
                         .jumuah-timeline {
                             flex-direction: column;
-                            gap: 6px;
+                            gap: 8px;
                         }
                         
                         .jumuah-slot {
                             min-width: auto;
-                            min-height: 50px;
-                            padding: 8px 6px;
+                            min-height: 60px;
+                            padding: 12px 8px;
                         }
                         
                         .jumuah-label {
@@ -172,16 +201,21 @@ export class WidgetRenderer {
                         .jumuah-time {
                             font-size: 16px;
                         }
+                        
+                        .prayer-item {
+                            padding: 16px 14px;
+                            min-height: 60px;
+                        }
                     }
                     
                     @media (max-width: 360px) {
                         .jumuah-timeline {
-                            gap: 4px;
+                            gap: 6px;
                         }
                         
                         .jumuah-slot {
-                            min-height: 45px;
-                            padding: 6px 4px;
+                            min-height: 55px;
+                            padding: 10px 6px;
                         }
                         
                         .jumuah-label {
@@ -191,15 +225,22 @@ export class WidgetRenderer {
                         .jumuah-time {
                             font-size: 15px;
                         }
+                        
+                        .prayer-item {
+                            padding: 14px 12px;
+                            min-height: 55px;
+                        }
                     }
                     
                     .description-card {
                         background: ${this.cardColors.background};
                         border: 1px solid ${this.cardColors.border};
-                        border-radius: 8px;
-                        padding: 12px;
-                        margin-top: 16px;
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-top: 20px;
                         text-align: center;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent;
                     }
                     
                     .description-text {
