@@ -297,9 +297,7 @@
     text-decoration: underline;
 }
 
-.setup-instructions .btn {
-    color: inherit !important;
-}
+/* Remove this rule to let buttons use their proper styling */
 
 .template-download {
     background: #fff;
@@ -323,6 +321,12 @@
     margin-bottom: 8px;
     font-size: 14px;
     color: #666;
+}
+
+/* Ensure buttons in template-download use the same styling as main buttons */
+.template-download .btn {
+    margin-top: 15px;
+    display: inline-block;
 }
 
 /* Code Box */
