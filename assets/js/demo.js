@@ -6,22 +6,46 @@ let currentAccentColor = '#ffffff';
 
 // Accordion functionality
 function toggleAccordion(header) {
-    const content = header.nextElementSibling;
-    const icon = header.querySelector('.accordion-icon');
-    
-    // Toggle active class on header
-    header.classList.toggle('active');
-    
-    // Toggle active class on content
-    content.classList.toggle('active');
-    
-    // Update icon rotation
-    if (content.classList.contains('active')) {
-        icon.textContent = '−';
-    } else {
-        icon.textContent = '+';
+    try {
+        console.log('Accordion clicked!', header);
+        const content = header.nextElementSibling;
+        const icon = header.querySelector('.accordion-icon');
+        
+        console.log('Content element:', content);
+        console.log('Icon element:', icon);
+        
+        if (!content) {
+            console.error('Content element not found!');
+            return;
+        }
+        
+        if (!icon) {
+            console.error('Icon element not found!');
+            return;
+        }
+        
+        // Toggle active class on header
+        header.classList.toggle('active');
+        
+        // Toggle active class on content
+        content.classList.toggle('active');
+        
+        console.log('Header classes:', header.classList.toString());
+        console.log('Content classes:', content.classList.toString());
+        
+        // Update icon rotation
+        if (content.classList.contains('active')) {
+            icon.textContent = '−';
+        } else {
+            icon.textContent = '+';
+        }
+    } catch (error) {
+        console.error('Error in toggleAccordion:', error);
     }
 }
+
+// Make function globally accessible
+window.toggleAccordion = toggleAccordion;
 
 // Input elements
 const inputs = {
