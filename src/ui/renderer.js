@@ -410,14 +410,23 @@ export class WidgetRenderer {
     /**
      * Render prayer times section
      */
-    _renderPrayerTimes(prayerTimes, textColor, config) {
-        const prayers = [
-            { name: 'Fajr', icon: '🌅' },
-            { name: 'Dhuhr', icon: '☀️' },
-            { name: 'Asr', icon: '🌤️' },
-            { name: 'Maghrib', icon: '🌇' },
-            { name: 'Isha', icon: '🌙' }
-        ];
+        _renderPrayerTimes(prayerTimes, textColor, config) {
+            const prayers = [
+                { name: 'Fajr', icon: '🌅' },
+                { name: 'Dhuhr', icon: '☀️' },
+                { name: 'Asr', icon: '🌤️' },
+                { name: 'Maghrib', icon: '🌇' },
+                { name: 'Isha', icon: '🌙' }
+            ];
+
+            // Debug: Log what data the renderer is receiving
+            console.log('🎨 RENDERER DEBUG: prayerTimes data');
+            console.log('fajrAthan:', prayerTimes.fajrAthan);
+            console.log('fajrIqama:', prayerTimes.fajrIqama);
+            console.log('dhuhrAthan:', prayerTimes.dhuhrAthan);
+            console.log('dhuhrIqama:', prayerTimes.dhuhrIqama);
+            console.log('timeType:', config.timeType);
+            console.log('Full prayerTimes object:', prayerTimes);
 
         // Check if we have dual time data (athan and iqama)
         const hasDualTimes = config.timeType === PRAYER_TYPES.BOTH;
