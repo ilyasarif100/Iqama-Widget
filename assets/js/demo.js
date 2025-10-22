@@ -51,12 +51,12 @@ window.toggleAccordion = toggleAccordion;
 const inputs = {
     title: document.getElementById('title') || { value: 'Masjid Al-Noor' },
     location: document.getElementById('location') || { value: 'Phoenix, United States' },
-    googleSheetUrl: document.getElementById('googleSheetUrl') || { value: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/export?format=csv&gid=0' }
+    googleSheetUrl: document.getElementById('googleSheetUrl') || { value: 'prayer-times-calendar - prayer-times-calendar (2).csv' }
 };
 
 // Widget configuration
 window.IqamaWidgetConfig = {
-    googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/export?format=csv&gid=0',
+    googleSheetUrl: 'prayer-times-calendar - prayer-times-calendar (2).csv',
     title: 'Masjid Al-Noor',
     location: 'Phoenix, United States',
     backgroundColor: '#1a1a1a',
