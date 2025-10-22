@@ -76,11 +76,25 @@ export class PrayerManager {
         if (dateData) {
             logger.success('Found prayer times for target date');
             prayerTimes = {
+                // Athan times
+                fajrAthan: dateData.fajrAthan,
+                dhuhrAthan: dateData.dhuhrAthan,
+                asrAthan: dateData.asrAthan,
+                maghribAthan: dateData.maghribAthan,
+                ishaAthan: dateData.ishaAthan,
+                // Iqama times
+                fajrIqama: dateData.fajrIqama,
+                dhuhrIqama: dateData.dhuhrIqama,
+                asrIqama: dateData.asrIqama,
+                maghribIqama: dateData.maghribIqama,
+                ishaIqama: dateData.ishaIqama,
+                // Backward compatibility
                 fajr: dateData.fajr,
                 dhuhr: dateData.dhuhr,
                 asr: dateData.asr,
                 maghrib: dateData.maghrib,
                 isha: dateData.isha,
+                // Jumuah times
                 jumuah1: dateData.jumuah1,
                 jumuah2: dateData.jumuah2,
                 jumuah3: dateData.jumuah3,
@@ -96,6 +110,19 @@ export class PrayerManager {
             }
 
             prayerTimes = {
+                // Athan times
+                fajrAthan: demoData.fajrAthan || FALLBACK_VALUES.TIME,
+                dhuhrAthan: demoData.dhuhrAthan || FALLBACK_VALUES.TIME,
+                asrAthan: demoData.asrAthan || FALLBACK_VALUES.TIME,
+                maghribAthan: demoData.maghribAthan || FALLBACK_VALUES.TIME,
+                ishaAthan: demoData.ishaAthan || FALLBACK_VALUES.TIME,
+                // Iqama times
+                fajrIqama: demoData.fajrIqama || FALLBACK_VALUES.TIME,
+                dhuhrIqama: demoData.dhuhrIqama || FALLBACK_VALUES.TIME,
+                asrIqama: demoData.asrIqama || FALLBACK_VALUES.TIME,
+                maghribIqama: demoData.maghribIqama || FALLBACK_VALUES.TIME,
+                ishaIqama: demoData.ishaIqama || FALLBACK_VALUES.TIME,
+                // Backward compatibility
                 fajr: demoData.fajr || FALLBACK_VALUES.TIME,
                 dhuhr: demoData.dhuhr || FALLBACK_VALUES.TIME,
                 asr: demoData.asr || FALLBACK_VALUES.TIME,
