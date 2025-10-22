@@ -114,6 +114,18 @@ export class DataParser {
                     let maghribIqama = values[CSV_COLUMNS.MAGHRIB_IQAMA] || FALLBACK_VALUES.TIME;
                     let ishaIqama = values[CSV_COLUMNS.ISHA_IQAMA] || FALLBACK_VALUES.TIME;
 
+                    // Debug: Log the first row to see what data we're getting
+                    if (i === 4) { // First data row
+                        logger.info('DEBUG: First row data', {
+                            fajrAthan: values[CSV_COLUMNS.FAJR_ATHAN],
+                            fajrIqama: values[CSV_COLUMNS.FAJR_IQAMA],
+                            dhuhrAthan: values[CSV_COLUMNS.ZUHR_ATHAN],
+                            dhuhrIqama: values[CSV_COLUMNS.ZUHR_IQAMA],
+                            valuesLength: values.length,
+                            allValues: values
+                        });
+                    }
+
                     // Apply iqama offset logic if offset is specified
                     const iqamaOffset = values[CSV_COLUMNS.IQAMA_OFFSET];
                     if (iqamaOffset && iqamaOffset.trim() !== '') {
