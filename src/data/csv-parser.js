@@ -116,14 +116,19 @@ export class DataParser {
 
                     // Debug: Log the first row to see what data we're getting
                     if (i === 4) { // First data row
-                        logger.info('DEBUG: First row data', {
-                            fajrAthan: values[CSV_COLUMNS.FAJR_ATHAN],
-                            fajrIqama: values[CSV_COLUMNS.FAJR_IQAMA],
-                            dhuhrAthan: values[CSV_COLUMNS.ZUHR_ATHAN],
-                            dhuhrIqama: values[CSV_COLUMNS.ZUHR_IQAMA],
-                            valuesLength: values.length,
-                            allValues: values
-                        });
+                        console.log('🔍 DEBUG: First row data');
+                        console.log('Fajr Athan:', values[CSV_COLUMNS.FAJR_ATHAN]);
+                        console.log('Fajr Iqama:', values[CSV_COLUMNS.FAJR_IQAMA]);
+                        console.log('Dhuhr Athan:', values[CSV_COLUMNS.ZUHR_ATHAN]);
+                        console.log('Dhuhr Iqama:', values[CSV_COLUMNS.ZUHR_IQAMA]);
+                        console.log('Asr Athan:', values[CSV_COLUMNS.ASR_ATHAN]);
+                        console.log('Asr Iqama:', values[CSV_COLUMNS.ASR_IQAMA]);
+                        console.log('Maghrib Athan:', values[CSV_COLUMNS.MAGHRIB_ATHAN]);
+                        console.log('Maghrib Iqama:', values[CSV_COLUMNS.MAGHRIB_IQAMA]);
+                        console.log('Isha Athan:', values[CSV_COLUMNS.ISHA_ATHAN]);
+                        console.log('Isha Iqama:', values[CSV_COLUMNS.ISHA_IQAMA]);
+                        console.log('Total columns:', values.length);
+                        console.log('All values:', values);
                     }
 
                     // Apply iqama offset logic if offset is specified
