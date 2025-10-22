@@ -14,18 +14,16 @@ class Logger {
      * Log info messages (only if debug is enabled)
      */
     info(message, data = null) {
-        if (this.config.debug && this.config.logLevel !== 'minimal') {
-            console.log(`ℹ️ [INFO] ${message}`, data || '');
-        }
+        // Always log info messages
+        console.log(`ℹ️ [INFO] ${message}`, data || '');
     }
 
     /**
      * Log success messages (only if debug is enabled)
      */
     success(message, data = null) {
-        if (this.config.debug && this.config.logLevel !== 'minimal') {
-            console.log(`✅ [SUCCESS] ${message}`, data || '');
-        }
+        // Always log success messages
+        console.log(`✅ [SUCCESS] ${message}`, data || '');
     }
 
     /**
@@ -46,9 +44,8 @@ class Logger {
      * Log debug messages (only in verbose mode)
      */
     debug(message, data = null) {
-        if (this.config.debug && this.config.logLevel === 'verbose') {
-            console.log(`🔍 [DEBUG] ${message}`, data || '');
-        }
+        // Always log debug messages
+        console.log(`🔍 [DEBUG] ${message}`, data || '');
     }
 
 }

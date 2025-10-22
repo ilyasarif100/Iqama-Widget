@@ -460,14 +460,19 @@
 .code-box {
     background: #1a1a1a;
     color: #fff;
-    padding: 20px;
+    padding: 10px;
     border-radius: 8px;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.2;
     overflow-x: auto;
     white-space: pre-wrap;
     word-break: break-all;
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    flex-shrink: 0;
 }
 
 /* Navigation Active State */

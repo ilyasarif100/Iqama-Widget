@@ -6,7 +6,7 @@
     <title>Demo - Masjid Tools</title>
     <meta name="description" content="Try our interactive prayer times widget demo. Customize colors, settings, and see live preview.">
     <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/demo.css">
+    <link rel="stylesheet" href="assets/css/demo.css?v=7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -54,11 +54,11 @@
                             <h3>📝 Basic Settings</h3>
                             <div class="form-row">
                                 <div class="form-item">
-                                    <label for="title">Masjid Name</label>
-                                    <input type="text" id="title" value="Masjid Al-Noor" placeholder="Enter masjid name">
+                                    <label for="title">Masjid Name <span style="color: red;">*</span></label>
+                                    <input type="text" id="title" value="Islamic Community Center of Phoenix" placeholder="Enter masjid name">
                                 </div>
                                 <div class="form-item">
-                                    <label for="location">Location</label>
+                                    <label for="location">Location <span style="color: red;">*</span></label>
                                     <div class="location-search-container">
                                         <input type="text" id="location" value="Phoenix, United States" placeholder="Search for a city..." autocomplete="off">
                                         <div id="locationSuggestions" class="location-suggestions" style="display: none;"></div>
@@ -68,8 +68,8 @@
                                 </div>
                             </div>
                             <div class="form-item">
-                                <label for="googleSheetUrl">Google Sheet URL</label>
-                                <input type="text" id="googleSheetUrl" value="https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing" placeholder="Enter Google Sheet URL">
+                                <label for="googleSheetUrl">Google Sheet URL <span style="color: red;">*</span></label>
+                                <input type="text" id="googleSheetUrl" value="https://docs.google.com/spreadsheets/d/1qf4hdwNJvvIAoDHZ6SH3hA6ElJVtNbYImv4RbPM7Sb4/edit?usp=sharing" placeholder="Enter Google Sheet URL">
                             </div>
                         </div>
                         
@@ -107,22 +107,22 @@
                             <h3>⏰ Time Type</h3>
                             <div class="button-group">
                                 <button class="time-button active" data-time="athan">
-                                    <div>🕌 Athan Times</div>
+                                    <div>Athan Times</div>
                                     <div class="button-description">Show when the call to prayer is announced</div>
                                 </button>
                                 <button class="time-button" data-time="iqama">
-                                    <div>🕌 Iqama Times</div>
+                                    <div>Iqama Times</div>
                                     <div class="button-description">Show when the prayer begins</div>
                                 </button>
                                 <button class="time-button" data-time="athan and iqama">
-                                    <div>🕌 Athan & Iqama</div>
+                                    <div>Athan & Iqama</div>
                                     <div class="button-description">Show both times in a table format</div>
                                 </button>
                             </div>
                         </div>
                         
                         <div class="control-group">
-                            <h3>🕌 Jumuah Prayers</h3>
+                            <h3>Jumuah Prayers</h3>
                             <div class="button-group">
                                 <button class="jumuah-button active" data-count="1">
                                     <div>1 Jumuah</div>
@@ -305,7 +305,7 @@
     </section>
 
     <!-- Load the widget script -->
-    <script src="dist/prayer-times-widget.js?v=3"></script>
+    <script src="dist/prayer-times-widget.js?v=8"></script>
     
     <!-- Accordion functionality -->
     <script>
@@ -353,6 +353,6 @@
     </script>
     
     <!-- Load the demo script -->
-    <script src="assets/js/demo.js?v=2"></script>
+    <script src="assets/js/demo.js?v=19"></script>
 </body>
 </html>

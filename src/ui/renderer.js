@@ -17,10 +17,41 @@ export class WidgetRenderer {
     renderWidget(prayerTimes, config) {
         logger.info('Rendering widget HTML');
         
+        // Debug announcement values
+        console.log('🔍 Announcement Debug:', {
+            prayerTimesAnnouncement: `"${prayerTimes.announcement}"`,
+            configAnnouncement: `"${config.announcement}"`,
+            finalAnnouncement: `"${prayerTimes.announcement || config.announcement || 'Default Hadith'}"`
+        });
+        
         this.cardColors = this._getCardColors(config.backgroundColor);
         const textColor = this._getContrastingTextColor(config.backgroundColor);
         
         const widgetHTML = this._generateWidgetHTML(prayerTimes, config, textColor);
+        
+        // Calculate dynamic scroll duration based on text length
+        setTimeout(() => {
+            const textElement = document.querySelector('.description-text');
+            const containerElement = document.querySelector('.description-card');
+            if (textElement && containerElement) {
+                const text = textElement.getAttribute('data-text') || textElement.textContent;
+                const containerWidth = containerElement.offsetWidth;
+                const textWidth = textElement.offsetWidth;
+                
+                // Professional scrolling speed: 50 pixels per second (comfortable reading pace)
+                const speed = 50; // pixels per second
+                
+                // Calculate duration: (text width + container width) / speed
+                const totalDistance = textWidth + containerWidth;
+                const duration = totalDistance / speed;
+                
+                // Apply minimum and maximum bounds for safety
+                const finalDuration = Math.max(10, Math.min(120, duration));
+                
+                // Override the CSS animation duration
+                textElement.style.animationDuration = finalDuration + 's';
+            }
+        }, 100);
         
         logger.success('Widget HTML rendered');
         return widgetHTML;
@@ -36,13 +67,13 @@ export class WidgetRenderer {
         // Determine time type label based on configuration
         let timeTypeLabel;
         if (config.timeType === PRAYER_TYPES.ATHAN) {
-            timeTypeLabel = '🕌 Athan Times';
+            timeTypeLabel = 'Athan Times';
         } else if (config.timeType === PRAYER_TYPES.IQAMA) {
-            timeTypeLabel = '🕌 Iqama Times';
+            timeTypeLabel = 'Iqama Times';
         } else if (config.timeType === PRAYER_TYPES.BOTH) {
-            timeTypeLabel = '🕌 Prayer Times';
+            timeTypeLabel = 'Prayer Times';
         } else {
-            timeTypeLabel = '🕌 Prayer Times'; // Default fallback
+            timeTypeLabel = 'Prayer Times'; // Default fallback
         }
         
         return `
@@ -306,12 +337,35 @@ export class WidgetRenderer {
                         text-align: center;
                         touch-action: manipulation;
                         -webkit-tap-highlight-color: transparent;
+                        overflow: hidden;
+                        position: relative;
                     }
                     
                     .description-text {
                         font-size: 14px;
                         color: ${textColor};
                         opacity: 0.8;
+                        margin: 0;
+                        white-space: nowrap;
+                        position: absolute;
+                        top: 50%;
+                        left: 0;
+                        transform: translateY(-50%);
+                        animation: scrollTextSmooth 25s linear infinite;
+                        animation-delay: 0.5s;
+                    }
+                    
+                    @keyframes scrollTextSmooth {
+                        0% {
+                            transform: translateY(-50%) translateX(20%);
+                        }
+                        100% {
+                            transform: translateY(-50%) translateX(-100%);
+                        }
+                    }
+                    
+                    .description-text:hover {
+                        animation-play-state: paused;
                     }
                     
                     /* Dual time display styles */
@@ -398,9 +452,11 @@ export class WidgetRenderer {
                 
                 ${this._renderJumuahSection(prayerTimes, config.jumuahCount, textColor)}
                 
+                ${this._renderAstronomicalSection(prayerTimes, textColor)}
+                
                 <div class="description-card">
-                    <p class="description-text">
-                        Times shown are when the Athan is announced
+                    <p class="description-text" data-text="${prayerTimes.announcement || config.announcement || 'The Prophet صلى الله عليه وسلم said: "Prayer in congregation is twenty-seven times more rewarding than prayer prayed alone." — Sahih al-Bukhari 645, Sahih Muslim 650'}">
+                        ${prayerTimes.announcement || config.announcement || 'The Prophet صلى الله عليه وسلم said: "Prayer in congregation is twenty-seven times more rewarding than prayer prayed alone." — Sahih al-Bukhari 645, Sahih Muslim 650'}
                     </p>
                 </div>
             </div>
@@ -412,21 +468,12 @@ export class WidgetRenderer {
      */
         _renderPrayerTimes(prayerTimes, textColor, config) {
             const prayers = [
-                { name: 'Fajr', icon: '🌅' },
-                { name: 'Dhuhr', icon: '☀️' },
-                { name: 'Asr', icon: '🌤️' },
-                { name: 'Maghrib', icon: '🌇' },
-                { name: 'Isha', icon: '🌙' }
+                { name: 'Fajr', icon: '' },
+                { name: 'Dhuhr', icon: '' },
+                { name: 'Asr', icon: '' },
+                { name: 'Maghrib', icon: '' },
+                { name: 'Isha', icon: '' }
             ];
-
-            // Debug: Log what data the renderer is receiving
-            console.log('🎨 RENDERER DEBUG: prayerTimes data');
-            console.log('fajrAthan:', prayerTimes.fajrAthan);
-            console.log('fajrIqama:', prayerTimes.fajrIqama);
-            console.log('dhuhrAthan:', prayerTimes.dhuhrAthan);
-            console.log('dhuhrIqama:', prayerTimes.dhuhrIqama);
-            console.log('timeType:', config.timeType);
-            console.log('Full prayerTimes object:', prayerTimes);
 
         // Check if we have dual time data (athan and iqama)
         const hasDualTimes = config.timeType === PRAYER_TYPES.BOTH;
@@ -541,6 +588,39 @@ export class WidgetRenderer {
                         <div class="jumuah-slot">
                             <div class="jumuah-label">${jumuah.name}</div>
                             <div class="jumuah-time">${this._formatJumuahTime(jumuah.time)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Render astronomical section (Sunrise and Sunset) - exactly like Jumuah
+     */
+    _renderAstronomicalSection(prayerTimes, textColor) {
+        const sunrise = prayerTimes.sunrise || '--:--';
+        const sunset = prayerTimes.maghribAthan || prayerTimes.maghrib || '--:--';
+
+        const astronomicalTimes = [
+            { name: 'Sunrise', time: sunrise },
+            { name: 'Sunset', time: sunset }
+        ];
+
+        return `
+            <div style="margin-bottom: 20px;">
+                <h3 style="
+                    margin: 0 0 16px 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: ${textColor};
+                ">Sun Times</h3>
+                
+                <div class="jumuah-timeline">
+                    ${astronomicalTimes.map(astro => `
+                        <div class="jumuah-slot">
+                            <div class="jumuah-label">${astro.name}</div>
+                            <div class="jumuah-time">${astro.time}</div>
                         </div>
                     `).join('')}
                 </div>

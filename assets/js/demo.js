@@ -4,6 +4,19 @@ let currentJumuahCount = 1;
 let currentBackgroundColor = '#1a1a1a';
 let currentAccentColor = '#ffffff';
 
+// Debounce function to prevent too many rapid updates
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Accordion functionality
 function toggleAccordion(header) {
     try {
@@ -49,15 +62,15 @@ window.toggleAccordion = toggleAccordion;
 
 // Input elements
 const inputs = {
-    title: document.getElementById('title') || { value: 'Masjid Al-Noor' },
+    title: document.getElementById('title') || { value: 'Islamic Community Center of Phoenix' },
     location: document.getElementById('location') || { value: 'Phoenix, United States' },
-    googleSheetUrl: document.getElementById('googleSheetUrl') || { value: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing' }
+    googleSheetUrl: document.getElementById('googleSheetUrl') || { value: 'https://docs.google.com/spreadsheets/d/1qf4hdwNJvvIAoDHZ6SH3hA6ElJVtNbYImv4RbPM7Sb4/edit?usp=sharing' }
 };
 
 // Widget configuration
 window.IqamaWidgetConfig = {
-    googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
-    title: 'Masjid Al-Noor',
+    googleSheetUrl: 'https://docs.google.com/spreadsheets/d/1qf4hdwNJvvIAoDHZ6SH3hA6ElJVtNbYImv4RbPM7Sb4/edit?usp=sharing',
+    title: 'Islamic Community Center of Phoenix',
     location: 'Phoenix, United States',
     backgroundColor: '#1a1a1a',
     accentColor: '#ffffff',
@@ -67,11 +80,42 @@ window.IqamaWidgetConfig = {
 
 // Update widget function
 function updateWidget() {
+    // Clear any existing error messages
+    clearErrorMessages();
+    
+    // Validate required fields
+    const masjidName = inputs.title.value.trim();
+    const googleSheetUrl = inputs.googleSheetUrl.value.trim();
+    const location = inputs.location.value.trim();
+    let hasErrors = false;
+    
+    if (!masjidName) {
+        showErrorMessage('title', 'Please enter a Masjid Name');
+        hasErrors = true;
+    }
+    
+    if (!location) {
+        showErrorMessage('location', 'Please enter a Location');
+        hasErrors = true;
+    }
+    
+    if (!googleSheetUrl) {
+        showErrorMessage('googleSheetUrl', 'Please enter a Google Sheet URL');
+        hasErrors = true;
+    } else if (!googleSheetUrl.includes('docs.google.com/spreadsheets')) {
+        showErrorMessage('googleSheetUrl', 'Please enter a valid Google Sheet URL (should contain docs.google.com/spreadsheets)');
+        hasErrors = true;
+    }
+    
+    if (hasErrors) {
+        return;
+    }
+    
     // Update configuration
-    window.IqamaWidgetConfig.title = inputs.title.value;
+    window.IqamaWidgetConfig.title = masjidName;
     window.IqamaWidgetConfig.location = inputs.location.value;
     window.IqamaWidgetConfig.masjidAddress = inputs.location.value; // Use location as masjid address
-    window.IqamaWidgetConfig.googleSheetUrl = inputs.googleSheetUrl.value;
+    window.IqamaWidgetConfig.googleSheetUrl = googleSheetUrl;
     window.IqamaWidgetConfig.timeType = currentTimeType;
     window.IqamaWidgetConfig.jumuahCount = currentJumuahCount;
     window.IqamaWidgetConfig.backgroundColor = currentBackgroundColor;
@@ -83,8 +127,57 @@ function updateWidget() {
     // Recreate widget with new configuration
     if (window.createWidget) {
         return window.createWidget();
+    } else {
+        console.warn('Widget script not loaded yet. Please wait a moment and try again.');
+        // Try to load the widget script if it's not available
+        const script = document.createElement('script');
+        script.src = 'dist/prayer-times-widget.js?v=3';
+        script.onload = () => {
+            if (window.createWidget) {
+                window.createWidget();
+            }
+        };
+        document.head.appendChild(script);
+        return Promise.resolve();
     }
-    return Promise.resolve();
+}
+
+// Helper functions for error messages
+function showErrorMessage(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorDiv = document.getElementById(fieldId + 'Error');
+    
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    } else {
+        // Create error div if it doesn't exist
+        const errorElement = document.createElement('div');
+        errorElement.id = fieldId + 'Error';
+        errorElement.className = 'field-error';
+        errorElement.textContent = message;
+        errorElement.style.color = 'red';
+        errorElement.style.fontSize = '12px';
+        errorElement.style.marginTop = '4px';
+        errorElement.style.display = 'block';
+        
+        field.parentNode.appendChild(errorElement);
+    }
+    
+    // Add red border to the field
+    field.style.borderColor = 'red';
+}
+
+function clearErrorMessages() {
+    // Clear all error messages
+    document.querySelectorAll('.field-error').forEach(error => {
+        error.style.display = 'none';
+    });
+    
+    // Reset field borders
+    document.querySelectorAll('input').forEach(input => {
+        input.style.borderColor = '';
+    });
 }
 
 // Helper function to get appropriate card colors based on background
@@ -252,11 +345,11 @@ function updateTimeTypeSmoothly(widget, timeType) {
     const timeTypeDisplay = widget.querySelector('.time-type-display');
     if (timeTypeDisplay) {
         if (timeType === 'athan') {
-            timeTypeDisplay.textContent = '🕌 Athan Times';
+            timeTypeDisplay.textContent = 'Athan Times';
         } else if (timeType === 'iqama') {
-            timeTypeDisplay.textContent = '🕌 Iqama Times';
+            timeTypeDisplay.textContent = 'Iqama Times';
         } else if (timeType === 'athan and iqama') {
-            timeTypeDisplay.textContent = '🕌 Prayer Times';
+            timeTypeDisplay.textContent = 'Prayer Times';
         }
     }
     
@@ -457,11 +550,15 @@ function updateGeneratedCode(config) {
     // Check if current colors match a predefined scheme
     const schemeName = getSchemeName(config.backgroundColor, config.accentColor);
     
-    const code = `<!-- Prayer Times Widget -->
-<div id="iqama-widget-container"></div>
-
+    // Generate clean code - only include values that user has customized
+    const isUsingDefaults = (
+        config.googleSheetUrl === 'https://docs.google.com/spreadsheets/d/1qf4hdwNJvvIAoDHZ6SH3hA6ElJVtNbYImv4RbPM7Sb4/edit?usp=sharing' &&
+        config.title === 'Islamic Community Center of Phoenix' &&
+        config.location === 'Phoenix, United States'
+    );
+    
+    const code = `<div id="iqama-widget-container"></div>
 <script>
-// Widget configuration
 window.IqamaWidgetConfig = {
     googleSheetUrl: '${config.googleSheetUrl || ''}',
     title: '${config.title || ''}',
@@ -472,13 +569,8 @@ window.IqamaWidgetConfig = {
     jumuahCount: ${config.jumuahCount || 1}
 };
 
-// Color scheme: ${schemeName || 'Custom (not recommended)'}
-// Available schemes: Dark, Light, Blue, Purple, Green, Red
-// Note: Only predefined color schemes are supported for best results
-
-// Load the widget script
 const script = document.createElement('script');
-        script.src = 'https://ilyasarif100.github.io/Masjid-Tools/dist/prayer-times-widget.js';
+script.src = 'https://ilyasarif100.github.io/Masjid-Tools/dist/prayer-times-widget.js';
 document.head.appendChild(script);
 </script>`;
     
@@ -510,18 +602,6 @@ function copyConfig() {
     }, 2000);
 }
 
-// Debounce function to prevent too many rapid updates
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
 
 // Color scheme selection function
 function selectColorScheme(element) {
@@ -592,18 +672,6 @@ let currentLocationData = {
     isValid: true
 };
 
-// Debounce function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
 
 // Cache for city search results
 const citySearchCache = new Map();
@@ -1268,9 +1336,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners to time buttons
     const timeButtons = document.querySelectorAll('.time-button');
+    console.log('Found time buttons:', timeButtons.length);
     if (timeButtons.length > 0) {
         timeButtons.forEach((button, index) => {
             button.addEventListener('click', debounce(() => {
+                console.log('Time button clicked:', button.dataset.time);
                 
                 // Remove active class from all time buttons
                 timeButtons.forEach(btn => btn.classList.remove('active'));
@@ -1307,9 +1377,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add event listeners to Jumuah buttons
     const jumuahButtons = document.querySelectorAll('.jumuah-button');
+    console.log('Found jumuah buttons:', jumuahButtons.length);
     if (jumuahButtons.length > 0) {
         jumuahButtons.forEach((button, index) => {
             button.addEventListener('click', debounce(() => {
+                console.log('Jumuah button clicked:', button.dataset.count);
                 
                 // Remove active class from all Jumuah buttons
                 jumuahButtons.forEach(btn => btn.classList.remove('active'));

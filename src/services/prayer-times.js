@@ -78,6 +78,7 @@ export class PrayerManager {
             prayerTimes = {
                 // Athan times
                 fajrAthan: dateData.fajrAthan,
+                sunrise: dateData.sunrise,
                 dhuhrAthan: dateData.dhuhrAthan,
                 asrAthan: dateData.asrAthan,
                 maghribAthan: dateData.maghribAthan,
@@ -88,6 +89,8 @@ export class PrayerManager {
                 asrIqama: dateData.asrIqama,
                 maghribIqama: dateData.maghribIqama,
                 ishaIqama: dateData.ishaIqama,
+                // Announcement from CSV
+                announcement: dateData.announcement || '',
                 // Backward compatibility
                 fajr: dateData.fajr,
                 dhuhr: dateData.dhuhr,
@@ -112,6 +115,7 @@ export class PrayerManager {
             prayerTimes = {
                 // Athan times
                 fajrAthan: demoData.fajrAthan || FALLBACK_VALUES.TIME,
+                sunrise: demoData.sunrise || FALLBACK_VALUES.TIME,
                 dhuhrAthan: demoData.dhuhrAthan || FALLBACK_VALUES.TIME,
                 asrAthan: demoData.asrAthan || FALLBACK_VALUES.TIME,
                 maghribAthan: demoData.maghribAthan || FALLBACK_VALUES.TIME,
@@ -122,6 +126,8 @@ export class PrayerManager {
                 asrIqama: demoData.asrIqama || FALLBACK_VALUES.TIME,
                 maghribIqama: demoData.maghribIqama || FALLBACK_VALUES.TIME,
                 ishaIqama: demoData.ishaIqama || FALLBACK_VALUES.TIME,
+                // Announcement from CSV
+                announcement: demoData.announcement || '',
                 // Backward compatibility
                 fajr: demoData.fajr || FALLBACK_VALUES.TIME,
                 dhuhr: demoData.dhuhr || FALLBACK_VALUES.TIME,

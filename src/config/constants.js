@@ -30,7 +30,9 @@ export const CSV_COLUMNS = {
     // Jumuah times
     JUMAH_LABEL: 17,
     JUMAH_START: 18,
-    JUMAH_END: 19
+    JUMAH_END: 19,
+    // Announcement column (note: CSV has typo "Announcment")
+    ANNOUNCEMENT: 20
 };
 
 // Jumuah Row Indexes (0-based, where 0 is header)

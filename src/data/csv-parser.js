@@ -94,14 +94,47 @@ export class DataParser {
         
         this.prayerTimesData = [];
 
-        // Start from row 5 (index 4) to skip header and Jumuah rows
-        for (let i = 4; i < lines.length; i++) {
+        // First pass: collect offset information dynamically
+        const offsets = {};
+        let dataStartRow = 1; // Default to start after header
+        
+        // Look for offset configuration rows (rows with prayer names and offsets)
+        for (let i = 1; i < Math.min(lines.length, 10); i++) { // Check first 10 rows max
+            if (lines[i] && lines[i].trim()) {
+                const values = parseCSVLine(lines[i]);
+                if (values.length >= CSV_COLUMNS.IQAMA_OFFSET + 1) {
+                    const prayerName = values[CSV_COLUMNS.PRAYER_NAME];
+                    const iqamaOffset = values[CSV_COLUMNS.IQAMA_OFFSET];
+                    
+                    if (prayerName && prayerName.trim() !== '' && iqamaOffset && iqamaOffset.trim() !== '') {
+                        const offsetMinutes = parseInt(iqamaOffset);
+                        if (!isNaN(offsetMinutes) && offsetMinutes >= 1 && offsetMinutes <= 360) {
+                            offsets[prayerName.toLowerCase()] = offsetMinutes;
+                            dataStartRow = Math.max(dataStartRow, i + 1); // Data starts after this row
+                        } else if (!isNaN(offsetMinutes)) {
+                            logger.warn(`Invalid offset for ${prayerName}: ${offsetMinutes} minutes. Must be between 1-360 minutes.`);
+                        }
+                    }
+                }
+            }
+        }
+
+        // If no offsets found, start parsing from row 2 (after header)
+        if (Object.keys(offsets).length === 0) {
+            dataStartRow = 1;
+        }
+
+        logger.info(`Starting daily data parsing from row ${dataStartRow + 1}`);
+
+        // Second pass: parse all prayer data starting from detected data row
+        for (let i = dataStartRow; i < lines.length; i++) {
             if (lines[i] && lines[i].trim()) {
                 const values = parseCSVLine(lines[i]);
                 
                 if (values.length >= CSV_COLUMNS.JUMAH_END + 1) {
                     // Parse athan times
                     const fajrAthan = values[CSV_COLUMNS.FAJR_ATHAN] || FALLBACK_VALUES.TIME;
+                    const sunrise = values[CSV_COLUMNS.SUNRISE] || FALLBACK_VALUES.TIME;
                     const dhuhrAthan = values[CSV_COLUMNS.ZUHR_ATHAN] || FALLBACK_VALUES.TIME;
                     const asrAthan = values[CSV_COLUMNS.ASR_ATHAN] || FALLBACK_VALUES.TIME;
                     const maghribAthan = values[CSV_COLUMNS.MAGHRIB_ATHAN] || FALLBACK_VALUES.TIME;
@@ -114,63 +147,33 @@ export class DataParser {
                     let maghribIqama = values[CSV_COLUMNS.MAGHRIB_IQAMA] || FALLBACK_VALUES.TIME;
                     let ishaIqama = values[CSV_COLUMNS.ISHA_IQAMA] || FALLBACK_VALUES.TIME;
 
-                    // Debug: Log the first row to see what data we're getting
-                    if (i === 4) { // First data row
-                        console.log('🔍 DEBUG: First row data');
-                        console.log('Fajr Athan:', values[CSV_COLUMNS.FAJR_ATHAN]);
-                        console.log('Fajr Iqama:', values[CSV_COLUMNS.FAJR_IQAMA]);
-                        console.log('Dhuhr Athan:', values[CSV_COLUMNS.ZUHR_ATHAN]);
-                        console.log('Dhuhr Iqama:', values[CSV_COLUMNS.ZUHR_IQAMA]);
-                        console.log('Asr Athan:', values[CSV_COLUMNS.ASR_ATHAN]);
-                        console.log('Asr Iqama:', values[CSV_COLUMNS.ASR_IQAMA]);
-                        console.log('Maghrib Athan:', values[CSV_COLUMNS.MAGHRIB_ATHAN]);
-                        console.log('Maghrib Iqama:', values[CSV_COLUMNS.MAGHRIB_IQAMA]);
-                        console.log('Isha Athan:', values[CSV_COLUMNS.ISHA_ATHAN]);
-                        console.log('Isha Iqama:', values[CSV_COLUMNS.ISHA_IQAMA]);
-                        console.log('Total columns:', values.length);
-                        console.log('All values:', values);
+
+                    // Apply offsets to all prayers
+                    if (offsets.fajr) {
+                        fajrIqama = this._addMinutesToTime(fajrAthan, offsets.fajr);
+                    }
+                    if (offsets.dhuhr) {
+                        dhuhrIqama = this._addMinutesToTime(dhuhrAthan, offsets.dhuhr);
+                    }
+                    if (offsets.asr) {
+                        asrIqama = this._addMinutesToTime(asrAthan, offsets.asr);
+                    }
+                    if (offsets.maghrib) {
+                        maghribIqama = this._addMinutesToTime(maghribAthan, offsets.maghrib);
+                    }
+                    if (offsets.isha) {
+                        ishaIqama = this._addMinutesToTime(ishaAthan, offsets.isha);
                     }
 
-                    // Apply iqama offset logic if offset is specified
-                    const iqamaOffset = values[CSV_COLUMNS.IQAMA_OFFSET];
-                    const prayerName = values[CSV_COLUMNS.PRAYER_NAME];
-                    
-                    console.log('🔧 OFFSET DEBUG:', {
-                        prayerName: prayerName,
-                        iqamaOffset: iqamaOffset,
-                        fajrAthan: fajrAthan,
-                        fajrIqama: fajrIqama,
-                        dhuhrAthan: dhuhrAthan,
-                        dhuhrIqama: dhuhrIqama
-                    });
-                    
-                    if (iqamaOffset && iqamaOffset.trim() !== '') {
-                        const offsetMinutes = parseInt(iqamaOffset);
-                        if (!isNaN(offsetMinutes)) {
-                            console.log('🔧 Applying offset:', offsetMinutes, 'minutes to', prayerName);
-                            
-                            // Apply offset only to the specific prayer mentioned in the Prayer column
-                            if (prayerName && prayerName.trim() !== '') {
-                                const prayerLower = prayerName.toLowerCase();
-                                
-                                if (prayerLower === 'fajr') {
-                                    fajrIqama = this._addMinutesToTime(fajrAthan, offsetMinutes);
-                                    console.log('🔧 Fajr Iqama after offset:', fajrIqama);
-                                } else if (prayerLower === 'dhuhr') {
-                                    dhuhrIqama = this._addMinutesToTime(dhuhrAthan, offsetMinutes);
-                                    console.log('🔧 Dhuhr Iqama after offset:', dhuhrIqama);
-                                } else if (prayerLower === 'asr') {
-                                    asrIqama = this._addMinutesToTime(asrAthan, offsetMinutes);
-                                    console.log('🔧 Asr Iqama after offset:', asrIqama);
-                                } else if (prayerLower === 'maghrib') {
-                                    maghribIqama = this._addMinutesToTime(maghribAthan, offsetMinutes);
-                                    console.log('🔧 Maghrib Iqama after offset:', maghribIqama);
-                                } else if (prayerLower === 'isha') {
-                                    ishaIqama = this._addMinutesToTime(ishaAthan, offsetMinutes);
-                                    console.log('🔧 Isha Iqama after offset:', ishaIqama);
-                                }
-                            }
-                        }
+                    // Debug announcement column (only for first few rows)
+                    const announcementValue = values[CSV_COLUMNS.ANNOUNCEMENT];
+                    if (this.prayerTimesData.length < 3) { // Only debug first 3 rows
+                        logger.info(`Announcement debug - Row ${this.prayerTimesData.length + 1}:`, {
+                            columnIndex: CSV_COLUMNS.ANNOUNCEMENT,
+                            rawValue: `"${announcementValue}"`,
+                            trimmedValue: `"${announcementValue ? announcementValue.trim() : ''}"`,
+                            isEmpty: !announcementValue || !announcementValue.trim()
+                        });
                     }
 
                     const prayerData = {
@@ -178,6 +181,7 @@ export class DataParser {
                         day: parseInt(values[CSV_COLUMNS.DAY]),
                         // Athan times
                         fajrAthan: fajrAthan,
+                        sunrise: sunrise,
                         dhuhrAthan: dhuhrAthan,
                         asrAthan: asrAthan,
                         maghribAthan: maghribAthan,
@@ -188,6 +192,8 @@ export class DataParser {
                         asrIqama: asrIqama,
                         maghribIqama: maghribIqama,
                         ishaIqama: ishaIqama,
+                        // Announcement from CSV
+                        announcement: announcementValue || '',
                         // Backward compatibility (use athan times as default)
                         fajr: fajrAthan,
                         dhuhr: dhuhrAthan,
@@ -222,7 +228,16 @@ export class DataParser {
             const [hours, mins] = timePart.split(':').map(Number);
             
             // Convert to 24-hour format for calculation
-            let totalMinutes = hours * 60 + mins + minutes;
+            let hour24 = hours;
+            if (is12Hour) {
+                if (period.toUpperCase() === 'AM' && hours === 12) {
+                    hour24 = 0; // 12:xx AM = 00:xx
+                } else if (period.toUpperCase() === 'PM' && hours !== 12) {
+                    hour24 = hours + 12; // 1:xx PM = 13:xx
+                }
+            }
+            
+            let totalMinutes = hour24 * 60 + mins + minutes;
             
             // Handle day overflow/underflow
             if (totalMinutes < 0) {
@@ -237,7 +252,7 @@ export class DataParser {
             // Format back to original format
             if (is12Hour) {
                 let displayHours = newHours;
-                let displayPeriod = period;
+                let displayPeriod = 'AM';
                 
                 if (newHours === 0) {
                     displayHours = 12;
@@ -272,7 +287,7 @@ export class DataParser {
         const firstRow = this.prayerTimesData[0];
         const requiredFields = [
             'month', 'day', 
-            'fajrAthan', 'dhuhrAthan', 'asrAthan', 'maghribAthan', 'ishaAthan',
+            'fajrAthan', 'sunrise', 'dhuhrAthan', 'asrAthan', 'maghribAthan', 'ishaAthan',
             'fajrIqama', 'dhuhrIqama', 'asrIqama', 'maghribIqama', 'ishaIqama'
         ];
         

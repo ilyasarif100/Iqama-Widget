@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "dev": "node build.js --watch",
-    "clean": "rm -rf dist/*",
-    "test": "echo 'No tests yet' && exit 0"
+    "clean": "rm -rf dist/*"
   },
   "keywords": [
     "prayer-times",
@@ -27,8 +25,8 @@
   "files": [
     "dist/",
     "src/",
-    "demo/",
-    "tests/",
+    "demo.html",
+    "index.html",
     "README.md",
     "LICENSE"
   ],

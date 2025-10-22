@@ -21,13 +21,11 @@ export const DEFAULT_CONFIG = {
     timeType: 'athan',
     jumuahCount: 1,
     
-    // Performance Configuration
-    cacheDuration: 24 * 60 * 60 * 1000, // 24 hours - daily refresh
-    pollingInterval: 24 * 60 * 60 * 1000, // 24 hours - daily refresh
+    // Announcement Configuration
+    announcement: '', // Custom announcement text (empty = use default hadith)
     
-    // Debug Configuration
-    debug: false,
-    logLevel: 'normal' // 'minimal', 'normal', 'verbose'
+    // Performance Configuration
+    cacheDuration: 24 * 60 * 60 * 1000 // 24 hours - daily refresh
 };
 
 // Get the current configuration (user config overrides defaults)

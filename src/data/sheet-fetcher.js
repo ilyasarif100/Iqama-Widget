@@ -12,21 +12,10 @@ export class DataFetcher {
     }
 
     /**
-     * Set the Google Sheet ID or local CSV file path
+     * Set the Google Sheet ID
      */
     setSheetId(sheetUrl) {
-        // Check if it's a local CSV file
-        if (sheetUrl.endsWith('.csv') && !sheetUrl.includes('docs.google.com')) {
-            this.sheetId = null;
-            this.localCsvPath = sheetUrl;
-            logger.info('Local CSV file set', this.localCsvPath);
-            return;
-        }
-        
-        // Extract Google Sheet ID
         this.sheetId = extractSheetId(sheetUrl);
-        this.localCsvPath = null;
-        
         if (!this.sheetId) {
             throw new Error('Invalid Google Sheet URL');
         }
@@ -34,27 +23,9 @@ export class DataFetcher {
     }
 
     /**
-     * Fetch CSV data from Google Sheets or local file
+     * Fetch CSV data from Google Sheets
      */
     async fetchCSV() {
-        // Handle local CSV file
-        if (this.localCsvPath) {
-            logger.info('Fetching CSV data from local file');
-            try {
-                const response = await fetch(this.localCsvPath);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                const csvText = await response.text();
-                logger.success('Successfully fetched local CSV data');
-                return csvText;
-            } catch (error) {
-                logger.error('Failed to fetch local CSV file', error.message);
-                throw new Error('Could not fetch local CSV file');
-            }
-        }
-        
-        // Handle Google Sheet
         if (!this.sheetId) {
             throw new Error('Sheet ID not set');
         }
