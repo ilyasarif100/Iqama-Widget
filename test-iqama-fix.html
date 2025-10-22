@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iqama Times Test</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            margin: 20px; 
+            background-color: #f0f0f0; 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-buttons {
+            margin: 10px 0;
+        }
+        .test-button {
+            margin: 5px;
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button.active {
+            background: #28a745;
+        }
+        #iqama-widget { 
+            margin: 0 !important; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Iqama Times Test</h1>
+    
+    <div class="test-section">
+        <h2>Test with Local CSV File</h2>
+        <p>This test uses the local CSV file to verify iqama functionality works correctly.</p>
+        
+        <div class="test-buttons">
+            <button class="test-button active" onclick="testTimeType('athan')">🕌 Athan Times</button>
+            <button class="test-button" onclick="testTimeType('iqama')">🕌 Iqama Times</button>
+            <button class="test-button" onclick="testTimeType('athan and iqama')">🕌 Athan & Iqama</button>
+        </div>
+        
+        <div id="iqama-widget-container"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Expected Results</h2>
+        <ul>
+            <li><strong>Athan Times:</strong> Should show 4:25 AM, 12:15 PM, 3:45 PM, 6:20 PM, 7:45 PM</li>
+            <li><strong>Iqama Times:</strong> Should show 4:30 AM, 12:20 PM, 3:50 PM, 6:25 PM, 7:50 PM</li>
+            <li><strong>Both:</strong> Should show table format with both times</li>
+        </ul>
+    </div>
+
+    <script>
+        // Use the local CSV file
+        window.IqamaWidgetConfig = {
+            googleSheetUrl: 'prayer-times-calendar - prayer-times-calendar (2).csv',
+            title: 'Masjid Test',
+            location: 'Test City',
+            backgroundColor: '#1a1a1a',
+            accentColor: '#ffffff',
+            timeType: 'athan',
+            jumuahCount: 1
+        };
+
+        function testTimeType(timeType) {
+            // Update active button
+            document.querySelectorAll('.test-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update config
+            window.IqamaWidgetConfig.timeType = timeType;
+            
+            // Recreate widget
+            if (window.createWidget) {
+                window.createWidget();
+            }
+        }
+
+        // Initialize with athan times
+        window.addEventListener('load', () => {
+            if (window.createWidget) {
+                window.createWidget();
+            }
+        });
+    </script>
+    <script src="dist/prayer-times-widget.js"></script>
+</body>
+</html>

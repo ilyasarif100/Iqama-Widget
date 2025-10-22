@@ -12,36 +12,51 @@ export class DataFetcher {
     }
 
     /**
-     * Set the Google Sheet ID or local file path
+     * Set the Google Sheet ID or local CSV file path
      */
     setSheetId(sheetUrl) {
-        // Check if it's a local file (no http/https protocol)
-        if (!sheetUrl.startsWith('http')) {
-            this.sheetId = sheetUrl; // Store as local file path
-            logger.info('Using local CSV file', sheetUrl);
+        // Check if it's a local CSV file
+        if (sheetUrl.endsWith('.csv') && !sheetUrl.includes('docs.google.com')) {
+            this.sheetId = null;
+            this.localCsvPath = sheetUrl;
+            logger.info('Local CSV file set', this.localCsvPath);
             return;
         }
         
-        // Extract Google Sheet ID from URL
+        // Extract Google Sheet ID
         this.sheetId = extractSheetId(sheetUrl);
+        this.localCsvPath = null;
+        
         if (!this.sheetId) {
             throw new Error('Invalid Google Sheet URL');
         }
-        logger.success('Sheet ID set', this.sheetId);
+        logger.info('Sheet ID set', this.sheetId);
     }
 
     /**
      * Fetch CSV data from Google Sheets or local file
      */
     async fetchCSV() {
+        // Handle local CSV file
+        if (this.localCsvPath) {
+            logger.info('Fetching CSV data from local file');
+            try {
+                const response = await fetch(this.localCsvPath);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const csvText = await response.text();
+                logger.success('Successfully fetched local CSV data');
+                return csvText;
+            } catch (error) {
+                logger.error('Failed to fetch local CSV file', error.message);
+                throw new Error('Could not fetch local CSV file');
+            }
+        }
+        
+        // Handle Google Sheet
         if (!this.sheetId) {
             throw new Error('Sheet ID not set');
-        }
-
-        // Check if it's a local file
-        if (!this.sheetId.startsWith('http')) {
-            logger.info('Fetching CSV data from local file');
-            return await this._fetchLocalFile();
         }
 
         logger.info('Fetching CSV data from Google Sheets');
@@ -102,24 +117,6 @@ export class DataFetcher {
         }
 
         return await response.text();
-    }
-
-    /**
-     * Fetch CSV data from local file
-     */
-    async _fetchLocalFile() {
-        try {
-            const response = await fetch(this.sheetId);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            const csvText = await response.text();
-            logger.success('Successfully fetched local CSV file');
-            return csvText;
-        } catch (error) {
-            logger.error('Failed to fetch local CSV file', error.message);
-            throw error;
-        }
     }
 
     /**
