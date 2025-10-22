@@ -133,15 +133,27 @@ export class DataParser {
 
                     // Apply iqama offset logic if offset is specified
                     const iqamaOffset = values[CSV_COLUMNS.IQAMA_OFFSET];
+                    const prayerName = values[CSV_COLUMNS.PRAYER_NAME];
+                    
+                    console.log('🔧 OFFSET DEBUG:', {
+                        prayerName: prayerName,
+                        iqamaOffset: iqamaOffset,
+                        fajrAthan: fajrAthan,
+                        fajrIqama: fajrIqama
+                    });
+                    
                     if (iqamaOffset && iqamaOffset.trim() !== '') {
                         const offsetMinutes = parseInt(iqamaOffset);
                         if (!isNaN(offsetMinutes)) {
+                            console.log('🔧 Applying offset:', offsetMinutes, 'minutes to', prayerName);
                             // Apply offset to all prayers
                             fajrIqama = this._addMinutesToTime(fajrAthan, offsetMinutes);
                             dhuhrIqama = this._addMinutesToTime(dhuhrAthan, offsetMinutes);
                             asrIqama = this._addMinutesToTime(asrAthan, offsetMinutes);
                             maghribIqama = this._addMinutesToTime(maghribAthan, offsetMinutes);
                             ishaIqama = this._addMinutesToTime(ishaAthan, offsetMinutes);
+                            
+                            console.log('🔧 After offset - Fajr Iqama:', fajrIqama);
                         }
                     }
 

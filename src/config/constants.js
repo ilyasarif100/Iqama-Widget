@@ -19,14 +19,21 @@ export const CSV_COLUMNS = {
     MAGHRIB_IQAMA: 10,
     ISHA_ATHAN: 11,
     ISHA_IQAMA: 12,
-    // Additional columns (if any)
+    // Empty column
     EMPTY: 13,
+    // Prayer name for offset
     PRAYER_NAME: 14,
+    // Iqama offset in minutes (for the prayer in column 14)
     IQAMA_OFFSET: 15,
+    // Empty columns
     EMPTY2: 16,
-    JUMAH_LABEL: 17,
-    JUMAH_START: 18,
-    JUMAH_END: 19
+    EMPTY3: 17,
+    EMPTY4: 18,
+    EMPTY5: 19,
+    // Jumuah times
+    JUMAH_LABEL: 20,
+    JUMAH_START: 21,
+    JUMAH_END: 22
 };
 
 // Jumuah Row Indexes (0-based, where 0 is header)
