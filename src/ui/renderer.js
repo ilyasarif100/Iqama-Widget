@@ -48,13 +48,13 @@ export class WidgetRenderer {
                 const estimatedChars = Math.max(20, textWidth / 8); // ~8px per character
                 
                 // Scale duration based on character count
-                // Your example: ~50 chars = 35 seconds, but make it 25% faster
-                // Formula: (chars / 50) * 35 * 0.75 (25% faster = 75% of original time)
-                // Add 8 seconds to guarantee complete scroll-off
+                // Your example: ~50 chars = 35 seconds, but make it 75% faster
+                // Formula: (chars / 50) * 35 * 0.25 (75% faster = 25% of original time)
+                // Add 1 second to ensure complete scroll-off
                 const baseChars = 50;
                 const baseDuration = 35;
-                const speedMultiplier = 0.75; // 25% faster
-                const scaledDuration = (estimatedChars / baseChars) * baseDuration * speedMultiplier + 8;
+                const speedMultiplier = 0.25; // 75% faster
+                const scaledDuration = (estimatedChars / baseChars) * baseDuration * speedMultiplier + 1;
                 
                 // Apply reasonable bounds
                 const finalDuration = Math.max(20, Math.min(80, scaledDuration));
@@ -364,7 +364,7 @@ export class WidgetRenderer {
                     
                     @keyframes scrollText {
                         0% {
-                            transform: translateX(100%);
+                            transform: translateX(0%);
                         }
                         100% {
                             transform: translateX(-100%);
