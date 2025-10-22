@@ -139,7 +139,9 @@ export class DataParser {
                         prayerName: prayerName,
                         iqamaOffset: iqamaOffset,
                         fajrAthan: fajrAthan,
-                        fajrIqama: fajrIqama
+                        fajrIqama: fajrIqama,
+                        dhuhrAthan: dhuhrAthan,
+                        dhuhrIqama: dhuhrIqama
                     });
                     
                     if (iqamaOffset && iqamaOffset.trim() !== '') {
