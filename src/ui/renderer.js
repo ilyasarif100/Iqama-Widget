@@ -460,7 +460,7 @@ export class WidgetRenderer {
                 let time;
                 
                 if (config.timeType === PRAYER_TYPES.IQAMA) {
-                    time = prayerTimes[`${prayerKey}Iqama`] || prayerTimes[prayerKey] || '--:--';
+                    time = prayerTimes[`${prayerKey}Iqama`] || '--:--';
                 } else {
                     time = prayerTimes[`${prayerKey}Athan`] || prayerTimes[prayerKey] || '--:--';
                 }
