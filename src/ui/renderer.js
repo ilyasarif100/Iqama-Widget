@@ -34,21 +34,32 @@ export class WidgetRenderer {
             const textElement = document.querySelector('.description-text');
             const containerElement = document.querySelector('.description-card');
             if (textElement && containerElement) {
-                const text = textElement.getAttribute('data-text') || textElement.textContent;
-                const containerWidth = containerElement.offsetWidth;
                 const textWidth = textElement.offsetWidth;
+                const containerWidth = containerElement.offsetWidth;
                 
-                // Professional scrolling speed: 50 pixels per second (comfortable reading pace)
-                const speed = 50; // pixels per second
-                
-                // Calculate duration: (text width + container width) / speed
+                // Calculate total distance: text width + container width for seamless loop
                 const totalDistance = textWidth + containerWidth;
-                const duration = totalDistance / speed;
                 
-                // Apply minimum and maximum bounds for safety
-                const finalDuration = Math.max(10, Math.min(120, duration));
+                // Based on your perfect example:
+                // Text: "Masjid will be closed 11/7 from Isha to 11/8 Asr " (35 seconds)
+                // Calculate proportional duration for any text length
                 
-                // Override the CSS animation duration
+                // Estimate character count (rough approximation)
+                const estimatedChars = Math.max(20, textWidth / 8); // ~8px per character
+                
+                // Scale duration based on character count
+                // Your example: ~50 chars = 35 seconds, but make it 25% faster
+                // Formula: (chars / 50) * 35 * 0.75 (25% faster = 75% of original time)
+                // Add 8 seconds to guarantee complete scroll-off
+                const baseChars = 50;
+                const baseDuration = 35;
+                const speedMultiplier = 0.75; // 25% faster
+                const scaledDuration = (estimatedChars / baseChars) * baseDuration * speedMultiplier + 8;
+                
+                // Apply reasonable bounds
+                const finalDuration = Math.max(20, Math.min(80, scaledDuration));
+                
+                // Apply the calculated duration
                 textElement.style.animationDuration = finalDuration + 's';
             }
         }, 100);
@@ -347,20 +358,16 @@ export class WidgetRenderer {
                         opacity: 0.8;
                         margin: 0;
                         white-space: nowrap;
-                        position: absolute;
-                        top: 50%;
-                        left: 0;
-                        transform: translateY(-50%);
-                        animation: scrollTextSmooth 25s linear infinite;
-                        animation-delay: 0.5s;
+                        display: inline-block;
+                        animation: scrollText 15s linear infinite;
                     }
                     
-                    @keyframes scrollTextSmooth {
+                    @keyframes scrollText {
                         0% {
-                            transform: translateY(-50%) translateX(20%);
+                            transform: translateX(100%);
                         }
                         100% {
-                            transform: translateY(-50%) translateX(-100%);
+                            transform: translateX(-100%);
                         }
                     }
                     

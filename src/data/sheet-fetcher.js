@@ -58,7 +58,7 @@ export class DataFetcher {
      * Fetch using Google Visualization API
      */
     async _fetchWithGoogleViz() {
-        const url = `https://docs.google.com/spreadsheets/d/${this.sheetId}/gviz/tq?tqx=out:csv`;
+        const url = `https://docs.google.com/spreadsheets/d/${this.sheetId}/gviz/tq?tqx=out:csv&t=${Date.now()}`;
         
         const response = await fetch(url, {
             mode: 'cors',

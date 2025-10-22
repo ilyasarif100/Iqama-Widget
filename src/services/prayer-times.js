@@ -23,8 +23,12 @@ export class PrayerManager {
         logger.info('Starting prayer times fetch process', { forceRefresh });
         
         try {
+            // Always clear cache to get fresh data
+            logger.info('Clearing cache to get fresh data');
+            this.cacheManager.clear();
+            
             // Check cache first (unless forcing refresh)
-            const cached = this.cacheManager.getPrayerTimes(this.dataFetcher.sheetId, forceRefresh);
+            const cached = this.cacheManager.getPrayerTimes(this.dataFetcher.sheetId, true);
             if (cached) {
                 logger.success('Using cached prayer times data');
                 this.prayerTimesData = cached;

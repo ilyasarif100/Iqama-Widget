@@ -94,17 +94,33 @@ export class DataParser {
         
         this.prayerTimesData = [];
 
-        // First pass: collect offset information dynamically
+        // First pass: collect offset information and announcement dynamically
         const offsets = {};
+        let announcement = ''; // Store announcement from offset rows
         let dataStartRow = 1; // Default to start after header
         
         // Look for offset configuration rows (rows with prayer names and offsets)
         for (let i = 1; i < Math.min(lines.length, 10); i++) { // Check first 10 rows max
             if (lines[i] && lines[i].trim()) {
                 const values = parseCSVLine(lines[i]);
+                logger.info(`Checking row ${i + 1}:`, {
+                    valuesLength: values.length,
+                    announcementColumn: values[CSV_COLUMNS.ANNOUNCEMENT],
+                    announcementColumnIndex: CSV_COLUMNS.ANNOUNCEMENT,
+                    prayerName: values[CSV_COLUMNS.PRAYER_NAME],
+                    iqamaOffset: values[CSV_COLUMNS.IQAMA_OFFSET]
+                });
+                
                 if (values.length >= CSV_COLUMNS.IQAMA_OFFSET + 1) {
                     const prayerName = values[CSV_COLUMNS.PRAYER_NAME];
                     const iqamaOffset = values[CSV_COLUMNS.IQAMA_OFFSET];
+                    const announcementValue = values[CSV_COLUMNS.ANNOUNCEMENT];
+                    
+                    // Capture announcement from offset rows
+                    if (announcementValue && announcementValue.trim() && !announcement) {
+                        announcement = announcementValue.trim();
+                        logger.info('Found announcement in offset row', announcement);
+                    }
                     
                     if (prayerName && prayerName.trim() !== '' && iqamaOffset && iqamaOffset.trim() !== '') {
                         const offsetMinutes = parseInt(iqamaOffset);
@@ -124,7 +140,12 @@ export class DataParser {
             dataStartRow = 1;
         }
 
-        logger.info(`Starting daily data parsing from row ${dataStartRow + 1}`);
+        logger.info('CSV header and first few rows:', {
+            header: lines[0],
+            row2: lines[1],
+            row3: lines[2],
+            row4: lines[3]
+        });
 
         // Second pass: parse all prayer data starting from detected data row
         for (let i = dataStartRow; i < lines.length; i++) {
@@ -165,16 +186,6 @@ export class DataParser {
                         ishaIqama = this._addMinutesToTime(ishaAthan, offsets.isha);
                     }
 
-                    // Debug announcement column (only for first few rows)
-                    const announcementValue = values[CSV_COLUMNS.ANNOUNCEMENT];
-                    if (this.prayerTimesData.length < 3) { // Only debug first 3 rows
-                        logger.info(`Announcement debug - Row ${this.prayerTimesData.length + 1}:`, {
-                            columnIndex: CSV_COLUMNS.ANNOUNCEMENT,
-                            rawValue: `"${announcementValue}"`,
-                            trimmedValue: `"${announcementValue ? announcementValue.trim() : ''}"`,
-                            isEmpty: !announcementValue || !announcementValue.trim()
-                        });
-                    }
 
                     const prayerData = {
                         month: parseInt(values[CSV_COLUMNS.MONTH]),
@@ -192,8 +203,8 @@ export class DataParser {
                         asrIqama: asrIqama,
                         maghribIqama: maghribIqama,
                         ishaIqama: ishaIqama,
-                        // Announcement from CSV
-                        announcement: announcementValue || '',
+                        // Announcement from CSV (captured from offset rows)
+                        announcement: announcement || '',
                         // Backward compatibility (use athan times as default)
                         fajr: fajrAthan,
                         dhuhr: dhuhrAthan,
