@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Iqama Offset Logic</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .error {
+            background: #ffe8e8;
+            color: #d00;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #080;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Iqama Offset Logic</h1>
+    
+    <div class="test-container">
+        <h2>Test Data</h2>
+        <p>Testing with sample data from the CSV:</p>
+        <ul>
+            <li><strong>Fajr Athan:</strong> 4:25 AM</li>
+            <li><strong>Fajr Iqama Offset:</strong> 20 minutes</li>
+            <li><strong>Expected Fajr Iqama:</strong> 4:45 AM</li>
+        </ul>
+    </div>
+
+    <div class="test-container">
+        <h2>Widget Test</h2>
+        <div id="iqama-widget-container">
+            <!-- Widget will be loaded here -->
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Results</h2>
+        <div id="test-results">
+            <p>Loading widget and testing offset calculations...</p>
+        </div>
+    </div>
+
+    <script>
+        // Test configuration
+        window.IqamaWidgetConfig = {
+            googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
+            title: 'Test Mosque',
+            location: 'Test Location',
+            backgroundColor: '#1a1a1a',
+            accentColor: '#ffffff',
+            timeType: 'athan and iqama',
+            jumuahCount: 3
+        };
+
+        // Load the widget
+        const script = document.createElement('script');
+        script.src = 'dist/prayer-times-widget.js';
+        script.onload = function() {
+            console.log('Widget loaded, testing offset logic...');
+            
+            // Wait a bit for the widget to load data
+            setTimeout(() => {
+                testOffsetLogic();
+            }, 2000);
+        };
+        document.head.appendChild(script);
+
+        function testOffsetLogic() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>Testing Offset Calculations...</h3>';
+
+            // Test the time calculation function
+            const testCases = [
+                { input: '4:25 AM', offset: 20, expected: '4:45 AM', description: 'Fajr + 20 minutes' },
+                { input: '12:15 PM', offset: 10, expected: '12:25 PM', description: 'Dhuhr + 10 minutes' },
+                { input: '3:45 PM', offset: 0, expected: '3:45 PM', description: 'Asr + 0 minutes' },
+                { input: '6:20 PM', offset: 5, expected: '6:25 PM', description: 'Maghrib + 5 minutes' },
+                { input: '11:55 PM', offset: 10, expected: '12:05 AM', description: 'Isha + 10 minutes (day overflow)' },
+                { input: '12:05 AM', offset: -10, expected: '11:55 PM', description: 'Fajr - 10 minutes (day underflow)' }
+            ];
+
+            let allPassed = true;
+            let results = '';
+
+            testCases.forEach((testCase, index) => {
+                const result = addMinutesToTime(testCase.input, testCase.offset);
+                const passed = result === testCase.expected;
+                allPassed = allPassed && passed;
+                
+                results += `
+                    <div class="test-result ${passed ? 'success' : 'error'}">
+                        <strong>Test ${index + 1}:</strong> ${testCase.description}<br>
+                        <strong>Input:</strong> ${testCase.input} + ${testCase.offset} minutes<br>
+                        <strong>Expected:</strong> ${testCase.expected}<br>
+                        <strong>Got:</strong> ${result}<br>
+                        <strong>Status:</strong> ${passed ? '✅ PASS' : '❌ FAIL'}
+                    </div>
+                `;
+            });
+
+            results += `
+                <div class="test-result ${allPassed ? 'success' : 'error'}">
+                    <strong>Overall Result:</strong> ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}
+                </div>
+            `;
+
+            resultsDiv.innerHTML = results;
+        }
+
+        // Copy the time calculation function for testing
+        function addMinutesToTime(timeString, minutes) {
+            if (!timeString || timeString.includes('--:--')) {
+                return '--:--';
+            }
+
+            try {
+                // Parse time string (e.g., "4:25 AM" or "16:25")
+                const is12Hour = timeString.includes('AM') || timeString.includes('PM');
+                let timePart = timeString.replace(/\s*(AM|PM)/i, '');
+                const period = timeString.match(/(AM|PM)/i)?.[0] || '';
+                
+                const [hours, mins] = timePart.split(':').map(Number);
+                
+                // Convert to 24-hour format for calculation
+                let totalMinutes = hours * 60 + mins + minutes;
+                
+                // Handle day overflow/underflow
+                if (totalMinutes < 0) {
+                    totalMinutes += 24 * 60; // Add a day
+                } else if (totalMinutes >= 24 * 60) {
+                    totalMinutes -= 24 * 60; // Subtract a day
+                }
+                
+                const newHours = Math.floor(totalMinutes / 60);
+                const newMins = totalMinutes % 60;
+                
+                // Format back to original format
+                if (is12Hour) {
+                    let displayHours = newHours;
+                    let displayPeriod = period;
+                    
+                    if (newHours === 0) {
+                        displayHours = 12;
+                        displayPeriod = 'AM';
+                    } else if (newHours < 12) {
+                        displayPeriod = 'AM';
+                    } else if (newHours === 12) {
+                        displayPeriod = 'PM';
+                    } else {
+                        displayHours = newHours - 12;
+                        displayPeriod = 'PM';
+                    }
+                    
+                    return `${displayHours}:${newMins.toString().padStart(2, '0')} ${displayPeriod}`;
+                } else {
+                    return `${newHours}:${newMins.toString().padStart(2, '0')}`;
+                }
+            } catch (error) {
+                console.error('Error adding minutes to time', { timeString, minutes, error: error.message });
+                return '--:--';
+            }
+        }
+    </script>
+</body>
+</html>

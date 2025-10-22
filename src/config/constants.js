@@ -9,21 +9,28 @@ export const CSV_COLUMNS = {
     DAY: 1,
     // Athan Times
     FAJR_ATHAN: 2,
-    ZUHR_ATHAN: 3,
-    ASR_ATHAN: 4,
-    MAGHRIB_ATHAN: 5,
-    ISHA_ATHAN: 6,
-    // Iqama Times
-    FAJR_IQAMA: 7,
-    ZUHR_IQAMA: 8,
-    ASR_IQAMA: 9,
+    FAJR_IQAMA: 3,
+    SUNRISE: 4,
+    ZUHR_ATHAN: 5,
+    ZUHR_IQAMA: 6,
+    ASR_ATHAN: 7,
+    ASR_IQAMA: 8,
+    MAGHRIB_ATHAN: 9,
     MAGHRIB_IQAMA: 10,
-    ISHA_IQAMA: 11,
-    // Jumuah (unchanged)
-    EMPTY: 12,        // Empty column
-    JUMAH_LABEL: 13,  // Jumuah label column
-    JUMAH_START: 14,  // Jumuah start time column
-    JUMAH_END: 15     // Jumuah end time column
+    ISHA_ATHAN: 11,
+    ISHA_IQAMA: 12,
+    // Empty column
+    EMPTY: 13,
+    // Prayer name for offset
+    PRAYER_NAME: 14,
+    // Iqama offset in minutes
+    IQAMA_OFFSET: 15,
+    // Empty column
+    EMPTY2: 16,
+    // Jumuah times
+    JUMAH_LABEL: 17,
+    JUMAH_START: 18,
+    JUMAH_END: 19
 };
 
 // Jumuah Row Indexes (0-based, where 0 is header)
