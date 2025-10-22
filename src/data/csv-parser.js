@@ -146,14 +146,28 @@ export class DataParser {
                         const offsetMinutes = parseInt(iqamaOffset);
                         if (!isNaN(offsetMinutes)) {
                             console.log('🔧 Applying offset:', offsetMinutes, 'minutes to', prayerName);
-                            // Apply offset to all prayers
-                            fajrIqama = this._addMinutesToTime(fajrAthan, offsetMinutes);
-                            dhuhrIqama = this._addMinutesToTime(dhuhrAthan, offsetMinutes);
-                            asrIqama = this._addMinutesToTime(asrAthan, offsetMinutes);
-                            maghribIqama = this._addMinutesToTime(maghribAthan, offsetMinutes);
-                            ishaIqama = this._addMinutesToTime(ishaAthan, offsetMinutes);
                             
-                            console.log('🔧 After offset - Fajr Iqama:', fajrIqama);
+                            // Apply offset only to the specific prayer mentioned in the Prayer column
+                            if (prayerName && prayerName.trim() !== '') {
+                                const prayerLower = prayerName.toLowerCase();
+                                
+                                if (prayerLower === 'fajr') {
+                                    fajrIqama = this._addMinutesToTime(fajrAthan, offsetMinutes);
+                                    console.log('🔧 Fajr Iqama after offset:', fajrIqama);
+                                } else if (prayerLower === 'dhuhr') {
+                                    dhuhrIqama = this._addMinutesToTime(dhuhrAthan, offsetMinutes);
+                                    console.log('🔧 Dhuhr Iqama after offset:', dhuhrIqama);
+                                } else if (prayerLower === 'asr') {
+                                    asrIqama = this._addMinutesToTime(asrAthan, offsetMinutes);
+                                    console.log('🔧 Asr Iqama after offset:', asrIqama);
+                                } else if (prayerLower === 'maghrib') {
+                                    maghribIqama = this._addMinutesToTime(maghribAthan, offsetMinutes);
+                                    console.log('🔧 Maghrib Iqama after offset:', maghribIqama);
+                                } else if (prayerLower === 'isha') {
+                                    ishaIqama = this._addMinutesToTime(ishaAthan, offsetMinutes);
+                                    console.log('🔧 Isha Iqama after offset:', ishaIqama);
+                                }
+                            }
                         }
                     }
 
