@@ -1290,8 +1290,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the existing widget smoothly
                 const existingWidget = document.getElementById('iqama-widget');
                 if (existingWidget) {
-                    updateTimeTypeSmoothly(existingWidget, currentTimeType);
+                    // Recreate the widget with new timeType
+                    if (window.createWidget) {
+                        window.createWidget();
+                    }
                 } else {
+                    // Create widget if it doesn't exist
+                    if (window.createWidget) {
+                        window.createWidget();
+                    }
                 }
             }, 100));
         });
