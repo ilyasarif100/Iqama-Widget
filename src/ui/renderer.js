@@ -420,8 +420,7 @@ export class WidgetRenderer {
         ];
 
         // Check if we have dual time data (athan and iqama)
-        const hasDualTimes = config.timeType === PRAYER_TYPES.BOTH && 
-                            prayerTimes.fajrAthan && prayerTimes.fajrIqama;
+        const hasDualTimes = config.timeType === PRAYER_TYPES.BOTH;
 
         if (hasDualTimes) {
             // Render dual time display with column headers

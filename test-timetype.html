@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeType Display Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .widget-container {
+            margin: 20px 0;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .btn.active {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 TimeType Display Test</h1>
+    
+    <div class="test-section">
+        <h2 class="test-title">Test Different TimeType Options</h2>
+        
+        <div class="controls">
+            <h3>Select TimeType:</h3>
+            <div class="button-group">
+                <button class="btn btn-primary active" data-time="athan" onclick="changeTimeType('athan')">
+                    🕌 Athan Only
+                </button>
+                <button class="btn btn-secondary" data-time="iqama" onclick="changeTimeType('iqama')">
+                    🕌 Iqama Only
+                </button>
+                <button class="btn btn-secondary" data-time="athan and iqama" onclick="changeTimeType('athan and iqama')">
+                    🕌 Athan & Iqama
+                </button>
+            </div>
+        </div>
+        
+        <div class="widget-container">
+            <div id="iqama-widget-container">
+                <!-- Widget will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">Expected Results</h2>
+        <ul>
+            <li><strong>Athan Only:</strong> Shows single column with athan times</li>
+            <li><strong>Iqama Only:</strong> Shows single column with iqama times</li>
+            <li><strong>Athan & Iqama:</strong> Shows table with column headers and both times</li>
+        </ul>
+    </div>
+
+    <script>
+        // Test configuration
+        window.IqamaWidgetConfig = {
+            googleSheetUrl: 'https://docs.google.com/spreadsheets/d/14yebmqPkLo0fT0GdlXW1vq0Y4jZsYtNgbK3ijTAIQlU/edit?usp=sharing',
+            title: 'Test Mosque',
+            location: 'Test Location',
+            backgroundColor: '#1a1a1a',
+            accentColor: '#ffffff',
+            timeType: 'athan',
+            jumuahCount: 3
+        };
+
+        // Load the widget
+        const script = document.createElement('script');
+        script.src = 'dist/prayer-times-widget.js';
+        script.onload = function() {
+            console.log('Widget loaded successfully');
+        };
+        document.head.appendChild(script);
+
+        function changeTimeType(timeType) {
+            // Update active button
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('btn-secondary');
+            });
+            
+            const activeBtn = document.querySelector(`[data-time="${timeType}"]`);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('btn-secondary');
+            
+            // Update widget configuration
+            window.IqamaWidgetConfig.timeType = timeType;
+            
+            // Recreate widget with new timeType
+            if (window.createWidget) {
+                window.createWidget();
+            }
+            
+            console.log('Changed timeType to:', timeType);
+        }
+    </script>
+</body>
+</html>
