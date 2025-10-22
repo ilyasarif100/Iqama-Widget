@@ -99,19 +99,22 @@ export class WidgetRenderer {
                 width: 100%;
                 box-sizing: border-box;
                 margin: 0 auto;
+                transform-origin: center top;
+                zoom: 1;
             ">
                 <style>
                     #iqama-widget * {
                         box-sizing: border-box;
                     }
                     
-                    /* Uniform mobile-style layout that scales proportionally */
+                    /* Handle browser zoom better and uniform mobile-style layout */
                     #iqama-widget {
+                        min-width: 280px;
+                        max-width: 600px;
+                        width: 100%;
                         padding: 16px;
                         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
                         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                        max-width: 600px;
-                        width: 100%;
                         box-sizing: border-box;
                         margin: 0 auto;
                         touch-action: manipulation;

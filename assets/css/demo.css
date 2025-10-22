@@ -1,24 +1,24 @@
 /* Demo Page Styles */
 .demo-section {
-    padding: 100px 0 60px;
+    padding: clamp(80px, 12vw, 100px) 0 clamp(40px, 6vw, 60px);
     background: #f8fafc;
     min-height: 100vh;
 }
 
 .demo-header {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: clamp(40px, 6vw, 60px);
 }
 
 .demo-header h1 {
-    font-size: 42px;
+    font-size: clamp(28px, 6vw, 42px);
     font-weight: 700;
     color: #1a1a1a;
-    margin-bottom: 20px;
+    margin-bottom: clamp(15px, 3vw, 20px);
 }
 
 .demo-header p {
-    font-size: 18px;
+    font-size: clamp(16px, 3vw, 18px);
     color: #666;
     max-width: 600px;
     margin: 0 auto;
@@ -27,44 +27,52 @@
 .demo-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    margin-bottom: 60px;
+    gap: clamp(20px, 4vw, 40px);
+    margin-bottom: clamp(40px, 6vw, 60px);
 }
 
 .demo-preview {
     background: #fff;
     border-radius: 12px;
-    padding: 30px;
+    padding: clamp(20px, 4vw, 30px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     height: fit-content;
 }
 
 .demo-preview h3 {
-    font-size: 24px;
+    font-size: clamp(20px, 4vw, 24px);
     font-weight: 600;
     color: #1a1a1a;
-    margin-bottom: 10px;
+    margin-bottom: clamp(8px, 2vw, 10px);
 }
 
 .preview-note {
     color: #666;
-    font-size: 14px;
-    margin-bottom: 20px;
+    font-size: clamp(12px, 2.5vw, 14px);
+    margin-bottom: clamp(15px, 3vw, 20px);
+}
+
+#iqama-widget-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    padding: 5px;
 }
 
 .controls-section {
     background: #fff;
     border-radius: 12px;
-    padding: 30px;
+    padding: clamp(20px, 4vw, 30px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     height: fit-content;
 }
 
 .controls-section h2 {
-    font-size: 28px;
+    font-size: clamp(22px, 4vw, 28px);
     font-weight: 700;
     color: #1a1a1a;
-    margin-bottom: 30px;
+    margin-bottom: clamp(20px, 4vw, 30px);
 }
 
 .controls {
@@ -488,6 +496,15 @@
         gap: 30px;
     }
     
+    .demo-preview {
+        padding: 20px;
+    }
+    
+    #iqama-widget-container {
+        padding: 3px;
+        margin: 0;
+    }
+    
     .setup-container {
         grid-template-columns: 1fr;
         gap: 30px;
@@ -521,7 +538,14 @@
     }
     
     .demo-preview, .controls-section {
-        padding: 20px;
+        padding: 15px;
+    }
+    
+    #iqama-widget-container {
+        padding: 2px;
+        margin: 0;
+        max-width: 100%;
+        overflow-x: hidden;
     }
     
     .color-schemes {
@@ -530,5 +554,73 @@
     
     .demo-header h1 {
         font-size: 28px;
+    }
+}
+
+/* Ultra-small devices (320px and below) */
+@media (max-width: 320px) {
+    .demo-section {
+        padding: 60px 0 30px;
+    }
+    
+    .demo-preview, .controls-section {
+        padding: 12px;
+    }
+    
+    #iqama-widget-container {
+        padding: 1px;
+        margin: 0;
+    }
+    
+    .demo-header h1 {
+        font-size: 24px;
+        line-height: 1.3;
+    }
+    
+    .demo-header p {
+        font-size: 14px;
+    }
+    
+    .demo-container {
+        gap: 15px;
+    }
+    
+    .demo-preview h3 {
+        font-size: 18px;
+    }
+    
+    .preview-note {
+        font-size: 11px;
+    }
+    
+    .controls-section h2 {
+        font-size: 20px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .color-schemes {
+        gap: 8px;
+    }
+    
+    .color-scheme {
+        padding: 8px;
+    }
+    
+    .color-scheme h4 {
+        font-size: 12px;
     }
 }
